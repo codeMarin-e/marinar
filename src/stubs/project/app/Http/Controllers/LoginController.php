@@ -13,7 +13,6 @@
             return view('login');
         }
 
-
         public function twoFactorChallenge() {
             $viewData = [];
             return view('two-factor-challenge', $viewData);

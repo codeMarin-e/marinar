@@ -12,12 +12,13 @@
      * @package Marinar\Marinar\Database\Seeders
      */
     class MarinarInstallSeeder extends Seeder {
-        public $refComponents = null;
+
+        use \Marinar\Marinar\Traits\MarinarSeedersTrait;
+
+        public static $addons = [];
 
         public function run() {
-            $Reflection = new \ReflectionProperty(get_class($this->command), 'components');
-            $Reflection->setAccessible(true);
-            $this->refComponents = $Reflection->getValue($this->command);
+            $this->getRefComponents();
 
             $this->structurePublic();
             $this->stubFiles();
@@ -27,21 +28,6 @@
             $this->prepareComposerJSON();
             $this->command->newLine();
             $this->refComponents->info("Done!");
-        }
-
-        private function execCommand($command, $output = false) {
-            $process = Process::fromShellCommandline( $command );
-            $process->setWorkingDirectory( base_path() );
-            // $process->setTty(true);
-            $process->setTimeout(null);
-            $process->run();
-            // executes after the command finishes
-            if (!$process->isSuccessful()) {
-                return false;
-                throw new ProcessFailedException($process);
-            }
-            if($output) echo $process->getOutput();
-            return true;
         }
 
         private function createPublicDir() {
@@ -66,42 +52,40 @@
                 if(!realpath($source)) return false;
                 return $this->execCommand($command);
             });
-
-            // $command = Package::replaceEnvCommand("mv -T {$basePath} {$mainDir}".DIRECTORY_SEPARATOR."project",
-            //     $basePath //where to search for commands_replace_env.php file
-            // );
-            // $this->refComponents->task("Structure project [$command]", function() use ($command, $mainDir){
-            //     $this->execCommand($command, $mainDir);
-            // });
         }
 
         private function stubFiles() {
-            $mainDir = dirname( base_path() );
-            $copyDir = \Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'stubs';
-            $command = Package::replaceEnvCommand("cp -rf {$copyDir}".DIRECTORY_SEPARATOR.". {$mainDir}",
-                base_path()//where to search for commands_replace_env.php file
-            );
-            $this->refComponents->task("Coping stubs [$command]", function() use ($command){
-                return $this->execCommand($command);
-            });
+            if(!realpath(base_path().DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'marinar.php')) {
+                return $this->copyStubs(\Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'stubs');
+            }
+
+            //clean for updates
+            static::$addons = config('marinar.addons')?? []; //because cleaning stubs clean marinar
+            $this->call([
+                \Marinar\Marinar\Database\Seeders\MarinarCleanStubsSeeder::class
+            ]);
+
+            $this->copyStubs(\Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'stubs');
+
+            //inject addons again
+            foreach(static::$addons as $addonClass) {
+                if(!method_exists($addonClass, 'injects')) continue;
+                $this->call( $addonClass::injects() );
+            }
         }
 
         private function dbMigrate() {
             $command = Package::replaceEnvCommand("php artisan migrate",
                 base_path()//where to search for commands_replace_env.php file
             );
-//            $this->refComponents->task("DB migrate [$command]", function() use ($command){
             $this->execCommand($command, true);
-//            });
         }
 
         private function installAddressable() {
             $command = Package::replaceEnvCommand("php artisan marinar:package marinar/addressable",
                 base_path()//where to search for commands_replace_env.php file
             );
-            // $this->refComponents->task("Install marinar/addressable [$command]", function() use ($command){
             $this->execCommand($command, true);
-            // });
         }
 
         private function initialSeeds() {

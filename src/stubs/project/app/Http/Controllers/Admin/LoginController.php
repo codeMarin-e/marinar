@@ -19,7 +19,6 @@
             return view('admin.two-factor-challenge', $viewData);
         }
 
-
         public static function findUserForFortify(Request $request) {
             if($user = User::where('email', $request->email)
                 ->whereHas('roles', function($qry) {

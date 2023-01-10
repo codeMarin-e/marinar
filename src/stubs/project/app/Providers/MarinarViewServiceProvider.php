@@ -1,10 +1,35 @@
 <?php
 
-    namespace App\Providers;
+namespace App\Providers;
 
-    use Marinar\Marinar\Providers\MarinarViewServiceProvider as Base;
+use App\View\Composers\MainComposer;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
-    class MarinarViewServiceProvider extends Base {
+class MarinarViewServiceProvider extends ServiceProvider {
 
+    /**
+     * Register services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        View::composer(
+            ['*'], MainComposer::class
+        );
 
     }
+
+    /**
+     * Bootstrap services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+
+    }
+
+
+}

@@ -1,7 +1,15 @@
 <?php
-    $return = include \Marinar\Marinar\Marinar::getPackageMainDir()
-        .DIRECTORY_SEPARATOR.'config'
-        .DIRECTORY_SEPARATOR.'marinar.php';
-    return array_merge($return, [
+return [
+    'max_file_size' => env('MAX_FILE_SIZE', '1024'), //IN MB
 
-    ]);
+    'where_route_prefixes' => [
+        'web' => '',
+        'admin' => '/admin',
+    ],
+    'admin_home' => '/admin',
+
+    'addons' => [],
+
+    // @HOOK_MARINAR_CONFIG
+];
+

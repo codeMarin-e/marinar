@@ -112,4 +112,5 @@ return [
 
     'password_timeout' => 10800,
 
+    // @HOOK_AUTH_CONFIG
 ];

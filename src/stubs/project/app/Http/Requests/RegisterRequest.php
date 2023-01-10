@@ -59,7 +59,6 @@ class RegisterRequest extends FormRequest
         ];
     }
 
-
     public function messages() {
         return Arr::dot((array)trans('register.validation'));
     }

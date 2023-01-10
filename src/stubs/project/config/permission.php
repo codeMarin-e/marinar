@@ -158,4 +158,6 @@ return [
 
         'store' => 'default',
     ],
+
+    // @HOOK_PERMISSION_CONFIG
 ];

@@ -227,4 +227,5 @@
             // 'ExampleClass' => App\Example\ExampleClass::class,
         ])->toArray(),
 
+        // @HOOK_APP_CONFIG
     ];

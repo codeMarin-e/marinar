@@ -35,12 +35,8 @@
                 Route::get('/', [DashController::class, 'index'])->name('home');
             });
 
-
             //ADDING PACKAGE ROUTES
             $adminPathsDir = implode(DIRECTORY_SEPARATOR, array(base_path(), 'routes', 'admin'));
             foreach(glob($adminPathsDir.DIRECTORY_SEPARATOR.'*.php') as $path) include $path;
-
-
-
         });
     });

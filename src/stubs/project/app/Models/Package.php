@@ -5,7 +5,5 @@
     use Marinar\Marinar\Models\PackageBase;
 
     class Package extends PackageBase{
-
-
-
+        // @HOOK_PACKAGE_TRAITS
     }
