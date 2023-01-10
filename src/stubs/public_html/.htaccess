@@ -1,0 +1,65 @@
+<IfModule mod_php7.c>
+php_value max_execution_time 300
+</IfModule>
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    RewriteCond %{ENV:REDIRECT_BASEDIR} (.+)
+    RewriteRule .* - [E=BASEDIR:%1]
+
+    RewriteRule ^index.php/(.*)$ /404 [R=301,L]
+
+    RewriteCond %{HTTPS} off
+    RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R,L]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+
+    # For localization urls
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{ENV:BASEDIR} ^/public_html$
+    RewriteCond %{REQUEST_URI} !^/public_html/(de|no|en|bg)(/)? [NC]
+    RewriteCond %{REQUEST_URI} !^/public_html/_ignition
+    RewriteCond %{REQUEST_URI} !^/public_html/_debugbar
+    RewriteCond %{REQUEST_URI} !^/public_html/ckeditor
+    RewriteCond %{REQUEST_URI} !^/public_html/elfinder
+    RewriteCond %{REQUEST_URI} !^/public_html/broadcasting
+    RewriteRule ^(.*)$ /public_html/$1 [L,QSA,R=301]
+
+    # For localization urls
+#    RewriteCond %{REQUEST_FILENAME} !-f
+#    RewriteCond %{ENV:BASEDIR} !^/public_html$
+#    RewriteCond %{REQUEST_URI} !^/(de|no|en|bg)(/)? [NC]
+#    RewriteCond %{REQUEST_URI} !^/_ignition
+#    RewriteCond %{REQUEST_URI} !^/_debugbar
+#    RewriteCond %{REQUEST_URI} !^/ckeditor
+#    RewriteCond %{REQUEST_URI} !^/elfinder
+#    RewriteCond %{REQUEST_URI} !^/broadcasting
+#    RewriteRule ^(.*)$ /bg/$1 [L,QSA,R=301]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_URI} ^/bg(/)? [NC]
+    RewriteRule ^bg/?(.*)$ /$1 [R=301,L,QSA]
+
+    # Handle Front Controller...
+#    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php74” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php74 .php .php7 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit

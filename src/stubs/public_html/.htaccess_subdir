@@ -1,0 +1,51 @@
+<IfModule mod_php7.c>
+php_value max_execution_time 300
+</IfModule>
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    RewriteCond %{ENV:REDIRECT_BASEDIR} (.+)
+    RewriteRule .* - [E=BASEDIR:%1]
+
+    RewriteRule ^index.php/(.*)$ /404 [R=301,L]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /heime/$1 [L,R=301]
+
+
+    # For localization urls
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{ENV:BASEDIR} ^/heime/public_html$
+    RewriteCond %{REQUEST_URI} !^/heime/public_html/(de|no|en)(/)? [NC]
+    RewriteCond %{REQUEST_URI} !^/heime/public_html/_ignition
+    RewriteCond %{REQUEST_URI} !^/heime/public_html/_debugbar
+    RewriteCond %{REQUEST_URI} !^/heime/public_html/ckeditor
+    RewriteCond %{REQUEST_URI} !^/heime/public_html/elfinder
+    RewriteCond %{REQUEST_URI} !^/heime/public_html/broadcasting
+    RewriteRule ^(.*)$ /heime/public_html/$1 [L,QSA,R=301]
+
+    # For localization urls
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{ENV:BASEDIR} !^/heime/public_html$
+    RewriteCond %{REQUEST_URI} !^/heime/(de|no|en)(/)? [NC]
+    RewriteCond %{REQUEST_URI} !^/heime/_ignition
+    RewriteCond %{REQUEST_URI} !^/heime/_debugbar
+    RewriteCond %{REQUEST_URI} !^/heime/ckeditor
+    RewriteCond %{REQUEST_URI} !^/heime/elfinder
+    RewriteCond %{REQUEST_URI} !^/heime/broadcasting
+    RewriteRule ^(.*)$ /heime/en/$1 [L,QSA,R=301]
+
+    # Handle Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>

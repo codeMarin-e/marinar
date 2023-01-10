@@ -1,0 +1,45 @@
+{
+    "name": "marinar/marinar",
+    "description": "Marinar framework",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marin",
+            "email": "marin@dev.nddesign.no"
+        }
+    ],
+    "require": {
+        "marinar/orderable": "*",
+        "marinar/addressable": "*",
+        "laravel/fortify": "*",
+        "league/flysystem-sftp-v3": "*",
+        "spatie/laravel-permission": "*",
+        "doctrine/dbal": "^3.3",
+        "barryvdh/laravel-elfinder": "^0.5.1",
+        "intervention/image": "^2.7",
+        "box/spout": "^3.3",
+        "php-excel-reader/spreadsheet-reader": "dev-master",
+        "rap2hpoutre/laravel-log-viewer": "^2.2"
+    },
+    "autoload": {
+        "files": [
+            "src/Fixes/elfinder/ElFinderController.php"
+        ],
+        "psr-4": {
+            "Marinar\\Marinar\\": "src/"
+        }
+    },
+    "extra": {
+        "marinar": {
+            "module": false,
+            "plugin": false,
+            "addon_to": false
+        },
+        "laravel": {
+            "aliases": {
+                "Marinar": "Marinar\\Marinar\\Marinar"
+            }
+        }
+    }
+}

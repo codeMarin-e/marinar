@@ -1,0 +1,11 @@
+AddHandler application/x-httpd-php73 .php .php5 .php4 .php3
+
+RewriteEngine on
+
+#RewriteCond %{HTTPS} off
+#RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R,L]
+
+RewriteRule .* - [E=BASEDIR:/SUB_DIR/public_html]
+
+
+RewriteRule ^(.*)$ %{ENV:BASEDIR}/$1 [L,QSA]

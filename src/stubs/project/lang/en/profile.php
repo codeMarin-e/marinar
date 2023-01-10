@@ -1,0 +1,58 @@
+<?php
+    return [
+        'form' => [
+            'fname' => 'First Name',
+            'lname' => 'Last Name',
+            'email' => 'E-mail',
+            'address_data' => 'Your Address',
+            'company' => 'Company',
+            'orgnum' => 'Company ID',
+            'phone' => 'Phone',
+            'city' => 'City',
+            'street' => 'Address',
+            'postcode' => 'Post code',
+            'old_password' => 'Old Password',
+            'password' => 'Password',
+            'password_confirmation' => 'Password Confirm',
+            'password_data' => 'Your Password',
+            'submit' => 'Update',
+        ],
+        'validation' => \Illuminate\Support\Arr::undot([
+            'addr.fname.required' => 'First name is required',
+            'addr.lname.required' => 'Last name is required',
+            'addr.email.required' => 'Email is required',
+            'addr.phone.required' => 'Phone is required',
+            'addr.street.required' => 'Street is required',
+            'addr.city.required' => 'City is required',
+            'addr.postcode.required' => 'Postcode is required',
+            'addr.country.required' => 'Country is required',
+            'password.required' => 'Password is required',
+            'old_password.required' => 'Old Password is required',
+
+            'addr.fname.max' => 'First name is too long',
+            'addr.lname.max' => 'Last name is too long',
+            'email_for_confirm.max' => 'Email is too long',
+            'email_for_confirm.email' => 'Email is not in email format',
+            'email_for_confirm.unique' => 'There is user already with such email',
+            'addr.phone.max' => 'Phone is too long',
+            'addr.street.max' => 'Street is too long',
+            'addr.city.max' => 'City is too long',
+            'addr.postcode.max' => 'Postcode is too long',
+            'addr.country.max' => 'Country is too long',
+            'avatar.file' => 'Avatar should be file',
+            'avatar.mimes' => 'Avatar should be file with jpg,bmp or png extension',
+            'avatar.max' => 'Avatar file is too big',
+
+
+            'old_password.max' => 'Old Password is too long',
+            'old_password.min' => 'Old Password is too short',
+            'old_password.current_password' => 'Old Password is wrong',
+            'password.max' => 'Password is too long',
+            'password.min' => 'Password is too short',
+            'password.confirmed' => 'Confirm password should be same',
+        ]),
+
+        'success' => 'Profile was updated',
+        'email_verification_sent' => 'E-mail with verification was sent',
+
+    ];
