@@ -3,7 +3,7 @@
         'header' => 'Login',
         'email' => 'Email address',
         'password' => 'Password',
-        'remember' => 'Remember Password',
+        'remember' => 'Remember me',
         'submit' => 'Login',
         'forgot' => 'Forgot Password?',
         'validation' => [
