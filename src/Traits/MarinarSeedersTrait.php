@@ -2,7 +2,7 @@
 
     namespace Marinar\Marinar\Traits;
 
-    use App\Models\Package;
+    use Marinar\Marinar\Models\PackageBase as Package;
     use Symfony\Component\Process\Exception\ProcessFailedException;
     use Symfony\Component\Process\Process;
 
