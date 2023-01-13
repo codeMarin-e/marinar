@@ -16,10 +16,10 @@
 
         private function clearFiles() {
             $this->refComponents->task("Clear stubs", function() {
-//                $stubDir = \Marinar\Users\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'old_stubs'.DIRECTORY_SEPARATOR.'v0.0.99';
+//                $stubDir = \Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'old_stubs'.DIRECTORY_SEPARATOR.'v0.0.99';
 //                static::removeStubFiles($stubDir, $stubDir);
 
-                $stubDir = \Marinar\Users\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'stubs';
+                $stubDir = \Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'stubs';
                 static::removeStubFiles($stubDir, $stubDir, true);
                 return true;
             });
