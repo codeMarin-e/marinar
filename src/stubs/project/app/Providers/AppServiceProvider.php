@@ -75,13 +75,6 @@ class AppServiceProvider extends ServiceProvider
             return '<?php $__env->marinar_stop_push(); endif; ?>';
         });
 
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                MarinarPackage::class,
-            ]);
-            return;
-        }
-
         //ADDING PACKAGE SCRIPTS
         foreach(glob(static::$marinarProvidersDir.DIRECTORY_SEPARATOR.'*_boot.php') as $path) include $path;
 

@@ -56,7 +56,7 @@
 
         private function stubFiles() {
             if(!realpath(base_path().DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'marinar.php')) {
-                return $this->copyStubs(\Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'stubs');
+                return $this->copyForce(\Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'stubs',force: true);
             }
 
             //clean for updates

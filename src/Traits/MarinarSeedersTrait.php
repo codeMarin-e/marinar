@@ -31,9 +31,10 @@
             return true;
         }
 
-        private function copyStubs($copyDir) {
+        private function copyStubs($copyDir, $force = false) {
             $mainDir = dirname( base_path() );
-            $command = Package::replaceEnvCommand("cp -rn {$copyDir}".DIRECTORY_SEPARATOR.". {$mainDir}",
+            $force = $force? 'f' : 'n';
+            $command = Package::replaceEnvCommand("cp -r{$force} {$copyDir}".DIRECTORY_SEPARATOR.". {$mainDir}",
                 base_path()//where to search for commands_replace_env.php file
             );
             $this->refComponents->task("Coping files [$command]", function() use ($command){
