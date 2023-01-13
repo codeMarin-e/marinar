@@ -8,9 +8,7 @@ return [
     ],
     'admin_home' => '/admin',
 
-    'addons' => [
-        // @HOOK_MARINAR_CONFIG_ADDONS
-    ],
+    'addons' => [],
 
     // @HOOK_MARINAR_CONFIG
 ];

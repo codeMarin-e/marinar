@@ -7,5 +7,4 @@
         </a>
     </li>
 
-    {{--  @HOOK_ADMIN_SIDEBAR  --}}
 </ul>
