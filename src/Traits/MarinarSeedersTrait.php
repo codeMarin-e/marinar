@@ -2,6 +2,7 @@
 
     namespace Marinar\Marinar\Traits;
 
+    use Illuminate\Support\Str;
     use Marinar\Marinar\Models\PackageBase as Package;
     use Symfony\Component\Process\Exception\ProcessFailedException;
     use Symfony\Component\Process\Process;
@@ -61,6 +62,12 @@
                     continue;
                 }
                 if(is_file( $appPath ) ) {
+                    $baseFileParts = explode('.', basename($path));
+                    $extension = array_pop($baseFileParts);
+                    if(!$extension || !in_array($extension, config('marinar.addon_allowed_extensions'))) {
+                        unlink( $appPath );
+                        continue;
+                    }
                     if(file_get_contents($path) === file_get_contents($appPath)) { //only if content is same as stubs
                         unlink( $appPath );
                     } else {
@@ -86,6 +93,13 @@
 
         private function removeFromContent($filePath, $removeLines) {
             if(!($fp = fopen($filePath, "r"))) return false;
+            if(Str::endsWith($filePath, '.blade.php')) {
+                array_unshift($removeLines, "{{-- @ADDON --}}");
+                $removeLines[] = "{{-- @END_ADDON --}}";
+            } else { //php
+                array_unshift($removeLines, "// @ADDON");
+                $removeLines[] = "// @END_ADDON";
+            }
             $return = '';
             $check = true;
             $removeLinesCount = count($removeLines);
@@ -115,13 +129,27 @@
 
         private function putBeforeInContent($filePath, $searches, $replaces) {
             if(!($fp = fopen($filePath, "r"))) return false;
+            if(Str::endsWith($filePath, '.blade.php')) {
+                $startComment = "{{-- @ADDON --}}\n";
+                $endComment = "{{-- @END_ADDON --}}\n";
+            } else { //php
+                $startComment = "// @ADDON\n";
+                $endComment = "// @END_ADDON\n";
+            }
             $searches = (array)$searches;
             $replaces = (array)$replaces;
             $return = '';
             while (($line = fgets($fp)) !== false) {
                 foreach($searches as $index => $search) {
                     if(strpos($line, $search) === false) continue;
-                    $return .= isset($replaces[$index])? $replaces[$index] : $replaces[0];
+                    $add = isset($replaces[$index])? $replaces[$index] : $replaces[0];
+                    for ($tabCounter=0; $counter<strlen($add); $counter++) {
+                        if($add[$counter] !== " ") break;
+                    }
+                    $tabCounter /= 4;
+                    $return .= str_repeat("\t", $tabCounter).$startComment.
+                        $add.
+                        str_repeat("\t", $tabCounter).$endComment;
                 }
                 $return .= $line;
             }

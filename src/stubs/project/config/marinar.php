@@ -8,6 +8,8 @@ return [
     ],
     'admin_home' => '/admin',
 
+    'addon_allowed_extensions' => [ 'php' ],
+
     'addons' => [
         // @HOOK_MARINAR_CONFIG_ADDONS
     ],
