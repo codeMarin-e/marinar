@@ -11,7 +11,7 @@
          * @return void
          */
         public function run() {
-            $domainName = str_replace(['http://', 'http:s://'], '',
+            $domainName = str_replace(['http://', 'https://'], '',
                 env('ALIAS_DOMAIN', env('APP_URL', request()->getHost()))
             );
             $domain = \App\Models\Site::updateOrCreate([

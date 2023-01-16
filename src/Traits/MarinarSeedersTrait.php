@@ -143,8 +143,8 @@
                 foreach($searches as $index => $search) {
                     if(strpos($line, $search) === false) continue;
                     $add = isset($replaces[$index])? $replaces[$index] : $replaces[0];
-                    for ($tabCounter=0; $counter<strlen($add); $counter++) {
-                        if($add[$counter] !== " ") break;
+                    for ($tabCounter=0; $tabCounter<strlen($add); $tabCounter++) {
+                        if($add[$tabCounter] !== " ") break;
                     }
                     $tabCounter /= 4;
                     $return .= str_repeat("\t", $tabCounter).$startComment.
