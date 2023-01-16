@@ -7,10 +7,10 @@
 
         use \Marinar\Marinar\Traits\MarinarSeedersTrait;
 
-        public $addons = [];
+        public static $addons = [];
 
         public function run() {
-            $this->addons = config('marinar.addons');
+            static::$addons = config('marinar.addons');
 
             $this->getRefComponents();
 
