@@ -131,10 +131,10 @@
             if(!($fp = fopen($filePath, "r"))) return false;
             if(Str::endsWith($filePath, '.blade.php')) {
                 $startComment = "{{-- @ADDON --}}\n";
-                $endComment = "{{-- @END_ADDON --}}\n";
+                $endComment = "\n{{-- @END_ADDON --}}\n";
             } else { //php
                 $startComment = "// @ADDON\n";
-                $endComment = "// @END_ADDON\n";
+                $endComment = "\n// @END_ADDON\n";
             }
             $searches = (array)$searches;
             $replaces = (array)$replaces;
@@ -146,10 +146,9 @@
                     for ($tabCounter=0; $tabCounter<strlen($add); $tabCounter++) {
                         if($add[$tabCounter] !== " ") break;
                     }
-                    $tabCounter /= 4;
-                    $return .= str_repeat("\t", $tabCounter).$startComment.
+                    $return .= str_repeat(" ", $tabCounter).$startComment.
                         $add.
-                        str_repeat("\t", $tabCounter).$endComment;
+                        str_repeat(" ", $tabCounter).$endComment;
                 }
                 $return .= $line;
             }
@@ -167,7 +166,6 @@
             }
         }
 
-
         private function dbMigrateRollbackDir($migrationsFilePath) {
             foreach(glob($migrationsFilePath.DIRECTORY_SEPARATOR.'*.php') as $migrationFile) {
                 $command = Package::replaceEnvCommand('php artisan migrate:refresh --realpath --path="'.$migrationFile.'" -n',
@@ -179,6 +177,14 @@
                 );
                 $this->execCommand($command, true);
             }
+        }
+
+        private function giveGitPermissions($packageSrcDir) {
+            $packageVendorDir = $packageSrcDir.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'.git';
+            $command = Package::replaceEnvCommand("chmod -R 777 {$packageVendorDir}");
+            $this->refComponents->task("GIT remove fix [$command]", function() use ($command){
+                return $this->execCommand($command);
+            });
         }
 
 

@@ -23,9 +23,10 @@
             $this->structurePublic();
             $this->stubFiles();
             $this->dbMigrate();
-            $this->installAddressable();
+            $this->installMarinarPackages();
             $this->initialSeeds();
             $this->prepareComposerJSON();
+            $this->giveGitPermissions(\Marinar\Marinar\Marinar::getPackageMainDir());
             $this->command->newLine();
             $this->refComponents->info("Done!");
         }
@@ -81,8 +82,20 @@
             $this->execCommand($command, true);
         }
 
+        private function installMarinarPackages() {
+            $this->installAddressable();
+            $this->installOrderable();
+        }
+
         private function installAddressable() {
             $command = Package::replaceEnvCommand("php artisan marinar:package marinar/addressable",
+                base_path()//where to search for commands_replace_env.php file
+            );
+            $this->execCommand($command, true);
+        }
+
+        private function installOrderable() {
+            $command = Package::replaceEnvCommand("php artisan marinar:package marinar/orderable",
                 base_path()//where to search for commands_replace_env.php file
             );
             $this->execCommand($command, true);
