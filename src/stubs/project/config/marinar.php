@@ -8,7 +8,10 @@ return [
     ],
     'admin_home' => '/admin',
 
-    'addon_allowed_extensions' => [ 'php' ],
+    'ext_comments' => [
+        '.blade.php' => "{{-- __COMMENT__ --}}",
+        '.php' => "// __COMMENT__",
+    ],
 
     'addons' => [
         // @HOOK_MARINAR_CONFIG_ADDONS
