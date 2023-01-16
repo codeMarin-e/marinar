@@ -62,14 +62,21 @@ trait MarinarSeedersTrait {
                 continue;
             }
             if(is_file( $appPath ) ) {
-                $baseFileParts = explode('.', basename($path));
-                $extension = array_pop($baseFileParts);
-                if(!$extension || !in_array($extension, config('marinar.addon_allowed_extensions'))) {
-                    unlink( $appPath );
-                    continue;
-                }
                 if(file_get_contents($path) === file_get_contents($appPath)) { //only if content is same as stubs
                     unlink( $appPath );
+
+                    //remove appPath for line keeping in injecting classes
+                    if(property_exists(static::class, 'addons')) {
+                        foreach(static::$addons as $addonClass) {
+                            if(!method_exists($addonClass, 'injects')) continue;
+                            $injectClassName = $addonClass::injects();
+                            if(property_exists($injectClassName, 'alreadyInjectedInLine')) {
+                                if(isset($injectClassName::$alreadyInjectedInLine[$appPath])) {
+                                    $injectClassName::$alreadyInjectedInLine[$appPath] = [];
+                                }
+                            }
+                        }
+                    }
                 } else {
                     if($showLogs) {
                         echo PHP_EOL."Not deleted: ".$appPath;
@@ -130,11 +137,10 @@ trait MarinarSeedersTrait {
                 if(property_exists($this, 'injectClass')) {
                     $injectClass = $this->injectClass;
                     if (property_exists($injectClass, 'alreadyInjectedInLine')) {
-                        $alreadyInjectedInLineStr = '$alreadyInjectedInLine';
-                        if (!isset($injectClass::$alreadyInjectedInLineStr[$filePath])) {
-                            $injectClass::$alreadyInjectedInLineStr[$filePath] = [];
+                        if (!isset($injectClass::$alreadyInjectedInLine[$filePath])) {
+                            $injectClass::$alreadyInjectedInLine[$filePath] = [];
                         }
-                        $this->injectClass::$alreadyInjectedInLineStr[$filePath][($hookName===false? 'default' : $hookName)] = $alreadyInLine;
+                        $this->injectClass::$alreadyInjectedInLine[$filePath][($hookName===false? 'default' : $hookName)] = $alreadyInLine;
                     }
                 }
                 $check = false;

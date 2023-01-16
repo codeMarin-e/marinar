@@ -7,10 +7,14 @@
 
         use \Marinar\Marinar\Traits\MarinarSeedersTrait;
 
+        public $addons = [];
+
         public function run() {
+            $this->addons = config('marinar.addons');
+
             $this->getRefComponents();
 
-            $this->cleanInjects(config('marinar.addons'));
+            $this->cleanInjects($this->addons);
             $this->clearFiles();
         }
 
