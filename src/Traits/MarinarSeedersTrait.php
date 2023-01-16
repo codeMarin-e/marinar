@@ -131,10 +131,10 @@
             if(!($fp = fopen($filePath, "r"))) return false;
             if(Str::endsWith($filePath, '.blade.php')) {
                 $startComment = "{{-- @ADDON --}}\n";
-                $endComment = "\n{{-- @END_ADDON --}}\n";
+                $endComment = "{{-- @END_ADDON --}}\n";
             } else { //php
                 $startComment = "// @ADDON\n";
-                $endComment = "\n// @END_ADDON\n";
+                $endComment = "// @END_ADDON\n";
             }
             $searches = (array)$searches;
             $replaces = (array)$replaces;
@@ -180,7 +180,7 @@
         }
 
         private function giveGitPermissions($packageSrcDir) {
-            $packageVendorDir = $packageSrcDir.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'.git';
+            $packageVendorDir = $packageSrcDir.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'objects';
             $command = Package::replaceEnvCommand("chmod -R 777 {$packageVendorDir}");
             $this->refComponents->task("GIT remove fix [$command]", function() use ($command){
                 return $this->execCommand($command);
