@@ -145,7 +145,7 @@
 
     if(!function_exists('checkConfigFileForUpdate')) {
         function checkConfigFileForUpdate($configs1, $configs2) {
-            if(!is_array($configs1) || is_array($configs2)) return true;
+            if(!is_array($configs1) || !is_array($configs2)) return true;
             foreach($configs2 as $key => $value) {
                 if(!isset($configs1[$key])) return true;
                 if(is_array($value)) {
