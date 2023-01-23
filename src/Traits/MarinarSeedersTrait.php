@@ -166,7 +166,7 @@ trait MarinarSeedersTrait {
                     $fileContent = str_replace($foundAddons[0], "", $fileContent);
 
                     foreach($foundAddons[0] as $index => $addonScript) {
-                        $addonScript = str_replace([' ', "\t", "\n"], $addonScript);
+                        $addonScript = str_replace([' ', "\t", "\n"], '', $addonScript);
                         foreach(config($packageName.'.addons') as $addonMainClass) {
                             if(!property_exists($addonMainClass, 'injects', )) continue;
                             $injectAddonClass = $addonMainClass::injects();
@@ -174,7 +174,7 @@ trait MarinarSeedersTrait {
                             $injectAddonClass::addonsMap(useExcludes: false); //do not inject but still need to replace
                             if(!isset($injectAddonClass::$addons[$appPath])) continue;
                             foreach($injectAddonClass::$addons[$appPath] as $hook => $hookAddonScript){
-                                $hookAddonScript = str_replace([' ', "\t", "\n"], $startComment.$hookAddonScript.$endComment);
+                                $hookAddonScript = str_replace([' ', "\t", "\n"], '', $startComment.$hookAddonScript.$endComment);
                                 if($hookAddonScript === $addonScript) {
                                     //addon is from this class(package)
                                     static::$addons[ $appPath ][ $index ] = [
@@ -189,14 +189,14 @@ trait MarinarSeedersTrait {
                     }
                 }
             }
-            $fileContent = str_replace([' ', "\t", "\n"], $fileContent);
+            $fileContent = str_replace([' ', "\t", "\n"], '', $fileContent);
 
             //if there is a stub file - it should have, but just for safety
             $oldStubPath = implode( DIRECTORY_SEPARATOR, [
                 base_path(), 'storage', 'marinar_stubs', $packageName, substr($path, strlen($copyDir) + 1)
             ]);
             if(realpath($oldStubPath)) {
-                if($fileContent !== str_replace([' ', "\t", "\n"], file_get_contents($oldStubPath))) {
+                if($fileContent !== str_replace([' ', "\t", "\n"], '', file_get_contents($oldStubPath))) {
                     //cannot update - file is changed
                     $createUpdateStub = true;
                 }
@@ -204,7 +204,7 @@ trait MarinarSeedersTrait {
 
             //NOT REALLY NECESSARY - NEED TO CHECK WHICH IS FASTER AND TAKE LESS MEMORY (THIS OR UNLINK-COPY-ADDON)
             $pathContent = file_get_contents($path);
-            if($fileContent === str_replace([' ', "\t", "\n"], $pathContent)) {
+            if($fileContent === str_replace([' ', "\t", "\n"], '', $pathContent)) {
                 if(isset(static::$addons[ $appPath ])) {
                     static::$addons[ $appPath ] = []; //static properties cannot be unset
                 }
@@ -296,14 +296,14 @@ trait MarinarSeedersTrait {
                 }
             }
 
-            $fileContent = str_replace([' ', "\t", "\n"], $fileContent);
+            $fileContent = str_replace([' ', "\t", "\n"], '', $fileContent);
 
             //if there is a stub file - it should have, but just for safety
             $oldStubPath = implode( DIRECTORY_SEPARATOR, [
                 base_path(), 'storage', 'marinar_stubs', static::$packageName, substr($path, strlen($copyDir) + 1)
             ]);
             if(realpath($oldStubPath)) {
-                if($fileContent !== str_replace([' ', "\t", "\n"], file_get_contents($oldStubPath))) {
+                if($fileContent !== str_replace([' ', "\t", "\n"], '', file_get_contents($oldStubPath))) {
                     if($showLogs) {
                         echo PHP_EOL."Not deleted: ".$appPath;
                     }
@@ -580,7 +580,7 @@ trait MarinarSeedersTrait {
                     $pureAddonContent = str_replace([" ", "\n", "\t"], '', $startComment.$addonContent.$endComment);
                     $alreadyFound = false;
                     foreach($foundAddons[0] as $index => $injectedAddon) {
-                        if($pureAddonContent !== str_replace([" ", "\n", "\t"], $injectedAddon)) continue; //not same
+                        if($pureAddonContent !== str_replace([" ", "\n", "\t"], '', $injectedAddon)) continue; //not same
                         //found match
                         if($alreadyFound) { //if there is more than one same addon in the file
                             unset($foundAddons[0][$index]);//make loops smaller
