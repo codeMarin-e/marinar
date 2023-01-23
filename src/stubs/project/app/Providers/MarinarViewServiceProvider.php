@@ -28,7 +28,7 @@ class MarinarViewServiceProvider extends ServiceProvider {
      */
     public function boot()
     {
-
+        $this->app['router']->aliasMiddleware('elfinder', \App\Http\Middleware\Elfinder::class);
     }
 
 

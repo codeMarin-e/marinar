@@ -2,6 +2,7 @@
 
     use Illuminate\Support\Arr;
     use Illuminate\Support\Facades\Route;
+    use Illuminate\Support\Str;
 
 
     if(!function_exists('marinar_assoc_arr_merge')) {
@@ -96,6 +97,47 @@
             if (!$start2Dt) return $start1Dt < $end2Dt;
             if (!$end2Dt) return $start1Dt <= $start2Dt;
             return $start1Dt <= $start2Dt;
+        }
+    }
+
+    if(!function_exists('returnArrayFileContentValues')) {
+        function returnArrayFileContentValues($key, $value, $level = 1) {
+            if(is_array($value)) {
+                $buff = "[\n";
+                foreach($value as $key2 => $value2) {
+                    $buff .= static::returnArrayFileContentValues($key2, $value2, $level+1);
+                }
+                $value = $buff.str_repeat("\t", $level)."]";
+            } elseif(is_numeric($value)) {
+
+            } else {
+                $value = strpos($key, "'") === false? "'{$value}'" : '"'.$value.'"';
+            }
+            if(strpos($key, "'") === false)
+                return str_repeat("\t", $level)."'{$key}' => {$value},\n";
+            return str_repeat("\t", $level).'"'.$key.'"'." => {$value},\n";
+        }
+    }
+
+    if(!function_exists('returnArrayFileContent')) {
+        function returnArrayFileContent($array) {
+            $return = "<?php\n";
+            $return .= "return [\n";
+            foreach($array as $key => $value) {
+                $return .= static::returnArrayFileContentValues($key, $value);
+            }
+            $return .= "];";
+            return $return;
+        }
+    }
+
+    if(!function_exists('dirInArray')) {
+        function dirInArray($dirPath, $dirs) {
+            foreach($dirs as $dir) {
+                if(Str::startsWith($dirPath, $dir))
+                    return true;
+            }
+            return false;
         }
     }
 

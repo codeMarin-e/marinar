@@ -209,7 +209,9 @@
             App\Providers\MarinarViewServiceProvider::class,
 
             App\Providers\FortifyServiceProvider::class,
+            Barryvdh\Elfinder\ElfinderServiceProvider::class,
 
+            // @HOOK_APP_PROVIDERS
         ],
 
         /*

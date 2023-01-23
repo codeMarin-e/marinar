@@ -2,7 +2,9 @@
     namespace Marinar\Marinar\Database\Seeders;
 
     use Illuminate\Database\Seeder;
+    use Illuminate\Support\Str;
     use Marinar\Marinar\Console\Commands\MarinarInstall;
+    use Marinar\Marinar\Marinar;
     use Marinar\Marinar\Models\PackageBase as Package;
     use Symfony\Component\Process\Exception\ProcessFailedException;
     use Symfony\Component\Process\Process;
@@ -15,30 +17,24 @@
 
         use \Marinar\Marinar\Traits\MarinarSeedersTrait;
 
-        public static $addons = [];
-
         public function run() {
+            if(!in_array(env('APP_ENV'), ['dev', 'local'])) return;
+            static::$packageName = 'marinar';
+            static::$packageDir = Marinar::getPackageMainDir();
+
             $this->getRefComponents();
 
             $this->structurePublic();
             $this->stubFiles();
-            $this->dbMigrate();
+            $this->mainDBMigrate();
             $this->installMarinarPackages();
             $this->initialSeeds();
             $this->prepareComposerJSON();
-            $this->giveGitPermissions(\Marinar\Marinar\Marinar::getPackageMainDir());
+            $this->giveGitPermissions();
+            $this->givePermissions(base_path().DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'marinar_stubs', show: true);
+
             $this->command->newLine();
             $this->refComponents->info("Done!");
-        }
-
-        private function createPublicDir() {
-            $mainDir = dirname( base_path() );
-            $command = Package::replaceEnvCommand("mkdir {$mainDir}".DIRECTORY_SEPARATOR."public_html",
-                base_path() //where to search for commands_replace_env.php file
-            );
-            $this->refComponents->task("Create public_html directory [{$command}]", function() use ($command){
-                return $this->execCommand($command);
-            });
         }
 
         private function structurePublic() {
@@ -55,27 +51,7 @@
             });
         }
 
-        private function stubFiles() {
-            if(!realpath(base_path().DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'marinar.php')) {
-                return $this->copyStubs(\Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'stubs',force: true);
-            }
-
-            //clean for updates
-            static::$addons = config('marinar.addons')?? []; //because cleaning stubs clean marinar
-            $this->call([
-                \Marinar\Marinar\Database\Seeders\MarinarCleanStubsSeeder::class
-            ]);
-
-            $this->copyStubs(\Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'stubs');
-
-            //inject addons again
-            foreach(static::$addons as $addonClass) {
-                if(!method_exists($addonClass, 'injects')) continue;
-                $this->call( $addonClass::injects() );
-            }
-        }
-
-        private function dbMigrate() {
+        private function mainDBMigrate() {
             $command = Package::replaceEnvCommand("php artisan migrate",
                 base_path()//where to search for commands_replace_env.php file
             );

@@ -107,11 +107,19 @@ class ElfinderController extends Controller
                         'alias' => $key,
                         'accessControl' => config('elfinder.access'), // filter callback (OPTIONAL),
                     ];
-                    if($diskDriver->getAdapter() instanceof \League\Flysystem\Adapter\Local) {
-                        $defaults['tmbURL'] = $disk->url($root['path'].'/.tmb');
-                        $defaults['tmbPath'] = $disk->path($root['path'].DIRECTORY_SEPARATOR.'.tmb');
+//                    if($diskDriver->getAdapter() instanceof \League\Flysystem\Adapter\Local) {
+                    $defaults['tmbURL'] = $disk->url($root['path'].'/.tmb');
+                    $defaults['tmbPath'] = $disk->path($root['path'].DIRECTORY_SEPARATOR.'.tmb');
+//                    }
+//                    $roots[] = array_merge($defaults, $root);
+
+                    $root = array_merge($defaults, $root);
+                    if (!isset($root['URL'])) {
+                        $root['URLCallback'] = function($path) use ($disk) {
+                            return $disk->url($path);
+                        };
                     }
-                    $roots[] = array_merge($defaults, $root);
+                    $roots[] = $root;
                 }
             }
         }
