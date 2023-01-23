@@ -71,7 +71,7 @@ trait MarinarSeedersTrait {
             base_path(), 'vendor', 'composer', 'installed.json'
         ]);
         if(!realpath($installed)) return false;
-        if(!($installed = json_decode($installed, true))) return false;
+        if(!($installed = json_decode(file_get_contents($installed), true))) return false;
         if(!isset($installed['packages'])) return false;
         foreach($installed['packages'] as $package) {
             if(!isset($package['name'])) continue;
@@ -201,16 +201,16 @@ trait MarinarSeedersTrait {
                         $createUpdateStub = true;
                     }
                 }
+            }
 
-                //NOT REALLY NECESSARY - NEED TO CHECK WHICH IS FASTER AND TAKE LESS MEMORY (THIS OR UNLINK-COPY-ADDON)
-                $pathContent = file_get_contents($path);
-                if($fileContent === str_replace([' ', "\t", "\n"], '', $pathContent)) {
-                    if(isset(static::$addons[ $appPath ])) {
-                        static::$addons[ $appPath ] = []; //static properties cannot be unset
-                    }
-                    //do not update - file is same
-                    continue;
+            //NOT REALLY NECESSARY - NEED TO CHECK WHICH IS FASTER AND TAKE LESS MEMORY (THIS OR UNLINK-COPY-ADDON)
+            $pathContent = file_get_contents($path);
+            if($fileContent === str_replace([' ', "\t", "\n"], '', $pathContent)) {
+                if(isset(static::$addons[ $appPath ])) {
+                    static::$addons[ $appPath ] = []; //static properties cannot be unset
                 }
+                //do not update - file is same
+                continue;
             }
 
             //create manual update stub file - file is changed
