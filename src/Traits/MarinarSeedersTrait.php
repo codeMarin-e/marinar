@@ -22,7 +22,7 @@ trait MarinarSeedersTrait {
         $this->refComponents = $Reflection->getValue($this->command);
     }
 
-    private function execCommand($command, $show = false, $output) {
+    private function execCommand($command, $show = false, $output = false) {
         $process = Process::fromShellCommandline( $command );
         $process->setWorkingDirectory( base_path() );
         // $process->setTty(true);
