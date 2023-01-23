@@ -105,7 +105,7 @@
             if(is_array($value)) {
                 $buff = "[\n";
                 foreach($value as $key2 => $value2) {
-                    $buff .= static::returnArrayFileContentValues($key2, $value2, $level+1);
+                    $buff .= returnArrayFileContentValues($key2, $value2, $level+1);
                 }
                 $value = $buff.str_repeat("\t", $level)."]";
             } elseif(is_numeric($value)) {
@@ -124,7 +124,7 @@
             $return = "<?php\n";
             $return .= "return [\n";
             foreach($array as $key => $value) {
-                $return .= static::returnArrayFileContentValues($key, $value);
+                $return .= returnArrayFileContentValues($key, $value);
             }
             $return .= "];";
             return $return;

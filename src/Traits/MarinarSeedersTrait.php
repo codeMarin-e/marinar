@@ -329,7 +329,7 @@ trait MarinarSeedersTrait {
         $this->clearMarinarStubs();
         $copyDir = static::$packageDir.DIRECTORY_SEPARATOR.'stubs';
         $oldStubsPath = implode( DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', static::$packageName ]);
-        $command = Package::replaceEnvCommand("cp -rf {$copyDir}".DIRECTORY_SEPARATOR.". {$oldStubsPath}",
+        $command = Package::replaceEnvCommand("mkdir -p {$oldStubsPath} && cp -rf {$copyDir}".DIRECTORY_SEPARATOR.". {$oldStubsPath}",
             base_path()//where to search for commands_replace_env.php file
         );
         $this->refComponents->task("Coping marinar_stubs [$command]", function() use ($command, $oldStubsPath){
