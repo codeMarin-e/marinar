@@ -110,8 +110,10 @@
                 $value = $buff.str_repeat("\t", $level)."]";
             } elseif(is_numeric($value)) {
 
-            } else {
+            } elseif(is_string($value)) {
                 $value = strpos($key, "'") === false? "'{$value}'" : '"'.$value.'"';
+            } else {
+                throw \Exception("{$key} wrong at returnArrayFileContentValues");
             }
             if(strpos($key, "'") === false)
                 return str_repeat("\t", $level)."'{$key}' => {$value},\n";
@@ -140,6 +142,23 @@
             return false;
         }
     }
+
+    if(!function_exists('checkConfigFileForUpdate')) {
+        function checkConfigFileForUpdate($configs1, $configs2) {
+            if(!is_array($configs1) || is_array($configs2)) return true;
+            foreach($configs2 as $key => $value) {
+                if(!isset($configs1[$key])) return true;
+                if(is_array($value)) {
+                    if(checkConfigFileForUpdate($configs1[$key], $value))
+                        return true;
+                    continue;
+                }
+            }
+            return false;
+        }
+    }
+
+
 
 
 
