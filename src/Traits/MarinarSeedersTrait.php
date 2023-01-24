@@ -67,6 +67,7 @@ trait MarinarSeedersTrait {
     }
 
     public static function marinarPackageVersion($packageName) {
+        $packageName = str_replace('marinar_', '', $packageName);
         $installed = implode(DIRECTORY_SEPARATOR, [
             base_path(), 'vendor', 'composer', 'installed.json'
         ]);
@@ -112,6 +113,33 @@ trait MarinarSeedersTrait {
             ]; //maybe is better with regular expression
             $replace = "'version' => '{$packageVersion}'";
         }
+        @file_put_contents( $configPath, str_replace($search, $replace, $configContent) );
+    }
+
+    private function removeVersion() {
+        $nowVersion = config(static::$packageName.'.version', false);
+        $configPath = base_path( 'config'.DIRECTORY_SEPARATOR.static::$packageName.'.php');
+        $configContent = @file_get_contents( $configPath );
+        if($nowVersion === false) return;
+        $search = [
+            "'version' => '{$nowVersion}',\n",
+            "\"version\" => \"{$nowVersion}\",\n",
+            "'version'=>'{$nowVersion}',\n",
+            "\"version\"=>\"{$nowVersion}\",\n",
+            "'version' => \"{$nowVersion}\",\n",
+            "\"version\" => '{$nowVersion}',\n",
+            "'version'=>\"{$nowVersion}\",\n",
+            "\"version\"=>'{$nowVersion}',\n",
+            "'version' => '{$nowVersion}', \n",
+            "\"version\" => \"{$nowVersion}\", \n",
+            "'version'=>'{$nowVersion}', \n",
+            "\"version\"=>\"{$nowVersion}\", \n",
+            "'version' => \"{$nowVersion}\", \n",
+            "\"version\" => '{$nowVersion}', \n",
+            "'version'=>\"{$nowVersion}\", \n",
+            "\"version\"=>'{$nowVersion}', \n",
+        ]; //maybe is better with regular expression
+        $replace = "";
         @file_put_contents( $configPath, str_replace($search, $replace, $configContent) );
     }
 
@@ -250,6 +278,7 @@ trait MarinarSeedersTrait {
 
     private function clearFiles() {
         $this->refComponents->task("Clear stubs", function() {
+            $this->removeVersion();
             $stubDir = static::$packageDir.DIRECTORY_SEPARATOR.'stubs';
             static::removeStubFiles($stubDir,
                 $stubDir,
@@ -272,7 +301,7 @@ trait MarinarSeedersTrait {
                 continue;
             }
             if($deleteBehavior === true || !is_file($appPath)) {
-                @unink($appPath);
+                unlink($appPath);
                 continue;
             }
             $fileContent = file_get_contents($appPath);
@@ -315,7 +344,7 @@ trait MarinarSeedersTrait {
                     continue;
                 }
             }
-            @unink($appPath);
+            @unlink($appPath);
         }
     }
 
@@ -513,7 +542,7 @@ trait MarinarSeedersTrait {
                     unset($return[$appPath][$hook]); continue;
                 }
                 if(Str::startsWith($addonContent, dirname( base_path() ))) { //content is in hook file
-                    $return[$appPath][$hook] = file_get_contents($addonContent);
+                    $return[$appPath][$hook] = str_replace(["<?php\n", "<?php \n"], '', file_get_contents($addonContent));
                 }
             }
         }
@@ -579,21 +608,27 @@ trait MarinarSeedersTrait {
                 $endAddon .= $endComment[$index];
             }
             $contentChanged = false;
+            $alreadyReplacedPureContents = []; //If two hook have same injection
             preg_match_all("/([ \t])*(".$startAddon.")([\s\S]*?)(".$endAddon.")/", $fileContent, $foundAddons);
             if(isset($foundAddons[0]) && !empty($foundAddons[0])) { //found @ADDONS
                 foreach($hookAddons as $hook => $addonContent) {
                     $pureAddonContent = str_replace([" ", "\n", "\t"], '', $startComment.$addonContent.$endComment);
-                    $alreadyFound = false;
+                    if(in_array($pureAddonContent, $alreadyReplacedPureContents)) { //for hooks with same content
+                        //unset from static::$addons to not inject again
+                        $buff = static::$addons;
+                        unset($buff[$filePath][$hook]);
+                        static::$addons = $buff;
+                        continue;
+                    }
                     foreach($foundAddons[0] as $index => $injectedAddon) {
                         if($pureAddonContent !== str_replace([" ", "\n", "\t"], '', $injectedAddon)) continue; //not same
+                        if(in_array($pureAddonContent, $alreadyReplacedPureContents)) continue; //for hooks with same content
+                        $alreadyReplacedPureContents[] = $pureAddonContent;
                         //found match
-                        if($alreadyFound) { //if there is more than one same addon in the file
-                            unset($foundAddons[0][$index]);//make loops smaller
-                            continue;
-                        }
                         $contentChanged = true;
                         $newContent = '';
                         if(isset(static::$addons[$filePath]) && isset(static::$addons[$filePath][$hook])) {
+//                            if($pureAddonContent === str_replace([" ", "\n", "\t"], '', static::$addons[$filePath][$hook])) continue; //the new is same as old
                             //put same spaces and tabs
                             $spaces = '';
                             for ($spaceIndex = 0; $spaceIndex < strlen($injectedAddon); $spaceIndex++) {
@@ -615,10 +650,14 @@ trait MarinarSeedersTrait {
                             // end put same spaces and tabs
 
                             $newContent = $spaces.$startComment."\n".$newContent.$spaces.$endComment."\n";
+
+                            //unset from static::$addons to not inject again
+                            $buff = static::$addons;
+                            unset($buff[$filePath][$hook]);
+                            static::$addons = $buff;
                         }
-                        $fileContent = str_replace($injectedAddon, $newContent, $fileContent);
+                        $fileContent = str_replace($injectedAddon."\n", $newContent, $fileContent);
                         unset($foundAddons[0][$index]);//make loops smaller
-                        $alreadyFound = true;
                     }
                 }
                 if($contentChanged) {
@@ -662,6 +701,7 @@ trait MarinarSeedersTrait {
         if(config(static::$packageName.'.delete_behavior', false) === 2) return; //keep everything
         $this->getRefComponents();
         if(method_exists($this, 'clearDB')) $this->clearDB();
+        $this->dbMigrateRollback();
         $this->updateAddonInjects(clear: true);
         $this->clearFiles();
     }
