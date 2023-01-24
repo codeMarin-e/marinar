@@ -392,7 +392,7 @@ trait MarinarSeedersTrait {
 //                } else { //SEARCH FOR THE HOOK
 //                    if(strpos($line, $search) === false) continue;
 //                }
-
+                if(strpos($line, $search) === false) continue;
                 $add = isset($replaces[$index])? $replaces[$index] : $replaces[0];
                 $spaces = '';
                 if($startComment !== '') {
