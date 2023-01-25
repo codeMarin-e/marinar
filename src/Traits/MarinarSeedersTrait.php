@@ -304,6 +304,26 @@ trait MarinarSeedersTrait {
                 unlink($appPath);
                 continue;
             }
+            //stubs that return configurable array
+            $valuesStubs = config(static::$packageName.'.values_stubs', []);
+            if(in_array($appPath, $valuesStubs) || dirInArray(dirname($appPath), $valuesStubs)) {
+                $oldStubPath = implode( DIRECTORY_SEPARATOR, [
+                    base_path(), 'storage', 'marinar_stubs', static::$packageName, substr($path, strlen($copyDir) + 1)
+                ]);
+                if(realpath($oldStubPath)) {
+                    $oldArray = include($oldStubPath);
+                    $appPathArray = include($appPath);
+                    if(checkConfigFileForUpdate($oldArray, $appPathArray)) { //there is new config key
+                        if($showLogs) {
+                            echo PHP_EOL."Not deleted: ".$appPath;
+                        }
+                        continue;
+                    }
+                    //there is no new config key
+                }
+                unlink($appPath);
+                continue;
+            }
             $fileContent = file_get_contents($appPath);
             $startComment = $endComment = false;
             foreach(config('marinar.ext_comments') as $endsWith => $commentType) {
@@ -344,7 +364,7 @@ trait MarinarSeedersTrait {
                     continue;
                 }
             }
-            @unlink($appPath);
+            unlink($appPath);
         }
     }
 
