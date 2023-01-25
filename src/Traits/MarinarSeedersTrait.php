@@ -84,6 +84,7 @@ trait MarinarSeedersTrait {
     }
 
     private function updateStubFiles($packageVersion) {
+        static::$addons = [];
         static::cleanStubsForUpdate(
             static::$packageDir.DIRECTORY_SEPARATOR.'stubs',
             static::$packageDir.DIRECTORY_SEPARATOR.'stubs',
@@ -146,8 +147,9 @@ trait MarinarSeedersTrait {
     private static function cleanStubsForUpdate($path, $copyDir, $packageName) {
         $excludeStubs = config($packageName.'.exclude_stubs', []);
         $valuesStubs = config($packageName.'.values_stubs', []);
-        static::$addons = [];
-        foreach(glob($path.DIRECTORY_SEPARATOR.'*') as $path) {
+        foreach(new \DirectoryIterator($path) as $path) {
+            if($path->isDot() === true) continue;
+            $path = $path->getRealPath();
             $appPath = str_replace(
                 DIRECTORY_SEPARATOR.'project'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'project'.DIRECTORY_SEPARATOR,
                 DIRECTORY_SEPARATOR.'project'.DIRECTORY_SEPARATOR,
@@ -155,7 +157,7 @@ trait MarinarSeedersTrait {
             if(in_array($appPath, $excludeStubs)) continue; //do not update
             if(is_dir($path)) {
                 static::cleanStubsForUpdate($path, $copyDir, $packageName);
-                if (is_dir($appPath) && count(glob("$appPath/*")) === 0) {
+                if (is_dir($appPath) && (iterator_count(new \DirectoryIterator($appPath))-2) === 0) {
                     rmdir($appPath);
                 }
                 continue;
@@ -197,11 +199,15 @@ trait MarinarSeedersTrait {
                         foreach($foundAddons[0] as $index => $addonScript) {
                             $addonScript = str_replace([' ', "\t", "\n"], '', $addonScript);
                             foreach(config($packageName.'.addons') as $addonMainClass) {
-                                if(!property_exists($addonMainClass, 'injects', )) continue;
+                                if(!method_exists($addonMainClass, 'injects' )) continue;
                                 $injectAddonClass = $addonMainClass::injects();
                                 if(!method_exists($injectAddonClass, 'addonsMap')) continue;
+                                static::$addons['testing'] = [];
+
+                                $injectAddonClass::configure();
                                 $injectAddonClass::addonsMap(useExcludes: false); //do not inject but still need to replace
                                 if(!isset($injectAddonClass::$addons[$appPath])) continue;
+
                                 foreach($injectAddonClass::$addons[$appPath] as $hook => $hookAddonScript){
                                     $hookAddonScript = str_replace([' ', "\t", "\n"], '', $startComment.$hookAddonScript.$endComment);
                                     if($hookAddonScript === $addonScript) {
@@ -291,11 +297,13 @@ trait MarinarSeedersTrait {
 
     private static function removeStubFiles($path, $copyDir, $deleteBehavior = false, $showLogs = false) {
         if(is_numeric($deleteBehavior)) return;
-        foreach(glob($path.DIRECTORY_SEPARATOR.'*') as $path) {
+        foreach(new \DirectoryIterator($path) as $path) {
+            if($path->isDot() === true) continue;
+            $path = $path->getRealPath();
             $appPath = base_path( '..'.DIRECTORY_SEPARATOR.substr($path, strlen($copyDir)+1) );
             if(is_dir($path)) {
                 static::removeStubFiles($path, $copyDir, $deleteBehavior, $showLogs);
-                if(is_dir($appPath) && count(glob("$appPath/*")) === 0 ) {
+                if(is_dir($appPath) && (iterator_count(new \DirectoryIterator($appPath))-2) === 0 ) {
                     rmdir($appPath);
                 }
                 continue;
@@ -645,10 +653,16 @@ trait MarinarSeedersTrait {
                         if(in_array($pureAddonContent, $alreadyReplacedPureContents)) continue; //for hooks with same content
                         $alreadyReplacedPureContents[] = $pureAddonContent;
                         //found match
-                        $contentChanged = true;
                         $newContent = '';
                         if(isset(static::$addons[$filePath]) && isset(static::$addons[$filePath][$hook])) {
-//                            if($pureAddonContent === str_replace([" ", "\n", "\t"], '', static::$addons[$filePath][$hook])) continue; //the new is same as old
+                            if($pureAddonContent === str_replace([" ", "\n", "\t"], '', $startComment.static::$addons[$filePath][$hook].$endComment)) {//the new is same as old
+                                unset($foundAddons[0][$index]);//make loops smaller
+                                //unset from static::$addons to not inject again
+                                $buff = static::$addons;
+                                unset($buff[$filePath][$hook]);
+                                static::$addons = $buff;
+                                continue;
+                            }
                             //put same spaces and tabs
                             $spaces = '';
                             for ($spaceIndex = 0; $spaceIndex < strlen($injectedAddon); $spaceIndex++) {
@@ -676,6 +690,7 @@ trait MarinarSeedersTrait {
                             unset($buff[$filePath][$hook]);
                             static::$addons = $buff;
                         }
+                        $contentChanged = true;
                         $fileContent = str_replace($injectedAddon."\n", $newContent, $fileContent);
                         unset($foundAddons[0][$index]);//make loops smaller
                     }
@@ -707,6 +722,7 @@ trait MarinarSeedersTrait {
     }
 
     private function autoInstall() {
+        static::configure();
         $this->getRefComponents();
         $this->updateAddonInjects();
         $this->injectAddons();
@@ -718,6 +734,7 @@ trait MarinarSeedersTrait {
     }
 
     private function autoRemove() {
+        static::configure();
         if(config(static::$packageName.'.delete_behavior', false) === 2) return; //keep everything
         $this->getRefComponents();
         if(method_exists($this, 'clearDB')) $this->clearDB();
