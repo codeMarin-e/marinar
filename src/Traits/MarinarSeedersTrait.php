@@ -202,8 +202,6 @@ trait MarinarSeedersTrait {
                                 if(!method_exists($addonMainClass, 'injects' )) continue;
                                 $injectAddonClass = $addonMainClass::injects();
                                 if(!method_exists($injectAddonClass, 'addonsMap')) continue;
-                                static::$addons['testing'] = [];
-
                                 $injectAddonClass::configure();
                                 $injectAddonClass::addonsMap(useExcludes: false); //do not inject but still need to replace
                                 if(!isset($injectAddonClass::$addons[$appPath])) continue;
