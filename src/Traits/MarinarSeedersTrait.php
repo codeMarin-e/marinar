@@ -41,7 +41,7 @@ trait MarinarSeedersTrait {
     private function copyStubs($copyDir, $force = false) {
         $mainDir = dirname( base_path() );
         $force = $force? 'f' : 'n';
-        $command = Package::replaceEnvCommand("cp -r{$force} {$copyDir}".DIRECTORY_SEPARATOR.". {$mainDir}",
+        $command = Package::replaceEnvCommand("cp -r{$force} '{$copyDir}".DIRECTORY_SEPARATOR.".' '{$mainDir}'",
             base_path()//where to search for commands_replace_env.php file
         );
         $this->refComponents->task("Coping files [$command]", function() use ($command){
@@ -377,7 +377,7 @@ trait MarinarSeedersTrait {
     private function clearMarinarStubs() {
         $oldStubsPath = implode( DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', static::$packageName ]);
         if(!realpath($oldStubsPath)) return;
-        $command = Package::replaceEnvCommand("rm -rf {$oldStubsPath}",
+        $command = Package::replaceEnvCommand("rm -rf '{$oldStubsPath}'",
             base_path()//where to search for commands_replace_env.php file
         );
         $this->refComponents->task("Delete marinar_stubs [$command]", function() use ($command){
@@ -389,7 +389,7 @@ trait MarinarSeedersTrait {
         $this->clearMarinarStubs();
         $copyDir = static::$packageDir.DIRECTORY_SEPARATOR.'stubs';
         $oldStubsPath = implode( DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', static::$packageName ]);
-        $command = Package::replaceEnvCommand("mkdir -p {$oldStubsPath} && cp -rf {$copyDir}".DIRECTORY_SEPARATOR.". {$oldStubsPath}",
+        $command = Package::replaceEnvCommand("mkdir -p '{$oldStubsPath}' && cp -rf '{$copyDir}".DIRECTORY_SEPARATOR.".' '{$oldStubsPath}'",
             base_path()//where to search for commands_replace_env.php file
         );
         $this->refComponents->task("Coping marinar_stubs [$command]", function() use ($command, $oldStubsPath){
@@ -405,12 +405,12 @@ trait MarinarSeedersTrait {
         $oldStubsHookPath = implode( DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', static::$packageName, 'hooks' ]);
         $this->refComponents->task("Coping hooks to marinar_stubs", function() use ($hooksPath, $oldStubsHookPath){
             if(realpath($oldStubsHookPath)) {
-                $command = Package::replaceEnvCommand("rm -rf {$oldStubsHookPath}",
+                $command = Package::replaceEnvCommand("rm -rf '{$oldStubsHookPath}'",
                     base_path()//where to search for commands_replace_env.php file
                 );
                 $this->execCommand($command);
             }
-            $command = Package::replaceEnvCommand("cp -rf {$hooksPath}".DIRECTORY_SEPARATOR.". {$oldStubsHookPath}",
+            $command = Package::replaceEnvCommand("cp -rf '{$hooksPath}".DIRECTORY_SEPARATOR.".' '{$oldStubsHookPath}'",
                 base_path()//where to search for commands_replace_env.php file
             );
             if(!$this->execCommand($command)) return false;
@@ -531,7 +531,7 @@ trait MarinarSeedersTrait {
     }
 
     private function givePermissions($dir, $show = false) {
-        $command = Package::replaceEnvCommand("chmod -R 777 {$dir}");
+        $command = Package::replaceEnvCommand("chmod -R 777 '{$dir}'");
         if($show) {
             $this->refComponents->task("Give permissions [$dir]", function () use ($command) {
                 return $this->execCommand($command);
