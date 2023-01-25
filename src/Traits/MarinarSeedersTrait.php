@@ -275,6 +275,7 @@ trait MarinarSeedersTrait {
                 foreach($classHookData as $classHookArr) {
                     $className = $classHookArr['class'];
                     if(!method_exists($className, 'injectAddon')) continue;
+                    $className::configure();
                     $className::injectAddon($appPath, $classHookArr['hook']);
                 }
                 return true;
