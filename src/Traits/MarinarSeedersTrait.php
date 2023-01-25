@@ -252,7 +252,9 @@ trait MarinarSeedersTrait {
                     base_path(), 'updates', $packageName, substr($path, strlen($copyDir) + 1)
                 ]);
                 if(!realpath(dirname($updateStubPath))) {
+                    $old = umask(0);
                     mkdir(dirname($updateStubPath), 0777, true);
+                    umask($old);
                 }
                 file_put_contents($updateStubPath, $pathContent);
                 echo "UPDATE STUB WAS CREATED: ".$appPath.PHP_EOL;
