@@ -90,7 +90,7 @@ trait MarinarSeedersTrait {
             static::$packageDir.DIRECTORY_SEPARATOR.'stubs',
             static::$packageName
         );
-        $this->copyStubs(static::$packageDir.DIRECTORY_SEPARATOR.'stubs');
+//        $this->copyStubs(static::$packageDir.DIRECTORY_SEPARATOR.'stubs'); //trying only with file_put_contents in cleanStubsForUpdate
         $this->injectStubsAddons();
     }
 
@@ -264,10 +264,10 @@ trait MarinarSeedersTrait {
             }
 
             //delete the file - next command will add the updated stub
-            unlink($appPath);
+//            unlink($appPath);
 
             //NEED TO CHECK WHICH IS MORE EFFICIENT - DIRECTLY HERE OR UNLINK-COPY
-//                @file_put_contents($appPath, $pathContent);
+                @file_put_contents($appPath, $pathContent);
         }
     }
 
