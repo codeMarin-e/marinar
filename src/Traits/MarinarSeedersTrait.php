@@ -195,7 +195,7 @@ trait MarinarSeedersTrait {
                     preg_match_all("/([ \t])*(".$startAddon.")([\s\S]*?)(".$endAddon.")/", $fileContent, $foundAddons);
                     if(isset($foundAddons[0]) && !empty($foundAddons[0])) { //found @ADDONS
                         $fileContent = str_replace($foundAddons[0], "", $fileContent);
-
+                        $alreadyUsedHooks = [];
                         foreach($foundAddons[0] as $index => $addonScript) {
                             $addonScript = str_replace([' ', "\t", "\n"], '', $addonScript);
                             foreach(config($packageName.'.addons') as $addonMainClass) {
@@ -207,6 +207,7 @@ trait MarinarSeedersTrait {
                                 if(!isset($injectAddonClass::$addons[$appPath])) continue;
 
                                 foreach($injectAddonClass::$addons[$appPath] as $hook => $hookAddonScript){
+                                    if(isset($alreadyUsedHooks[$injectAddonClass]) && in_array($hook, $alreadyUsedHooks[$injectAddonClass])) continue; //for same content hooks
                                     $hookAddonScript = str_replace([' ', "\t", "\n"], '', $startComment.$hookAddonScript.$endComment);
                                     if($hookAddonScript === $addonScript) {
                                         //addon is from this class(package)
@@ -214,6 +215,7 @@ trait MarinarSeedersTrait {
                                             'class' => $injectAddonClass,
                                             'hook' => $hook
                                         ];
+                                        $alreadyUsedHooks[$injectAddonClass][] = $hook;
                                         break;
                                     }
                                 }
