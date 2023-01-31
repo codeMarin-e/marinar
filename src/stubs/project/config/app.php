@@ -225,6 +225,8 @@
         |
         */
 
+        'max_file_size' => env('MAX_FILE_SIZE', '1024'), //in KB
+
         'aliases' => Facade::defaultAliases()->merge([
             // 'ExampleClass' => App\Example\ExampleClass::class,
         ])->toArray(),
