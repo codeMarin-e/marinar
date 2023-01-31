@@ -79,7 +79,7 @@
 
 
         public static function postAutoloadDump() {
-            $command = static::replaceEnvCommand("php artisan marinar:package");
+            $command = static::replaceEnvCommand("php -d memory_limit=-1 artisan marinar:package");
             echo "$command \n";
             $process = new Process( explode(' ', $command) );
             $process->setWorkingDirectory( static::mainFolder() );
@@ -207,7 +207,7 @@
             if(!empty($marinarUninstalls)) {
                 $removePackages = static::sortMarinarPackages($marinarUninstalls);
                 foreach ($removePackages as $packageName => $requires) {
-                    $forProcessCmd = static::replaceEnvCommand("php artisan marinar:package {$packageName} -r");
+                    $forProcessCmd = static::replaceEnvCommand("php -d memory_limit=-1 artisan marinar:package {$packageName} -r");
                     echo "{$forProcessCmd} \n";
                     $process = new Process(explode(' ', $forProcessCmd));
                     $process->setWorkingDirectory(static::mainFolder());
