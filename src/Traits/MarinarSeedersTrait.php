@@ -54,7 +54,7 @@ trait MarinarSeedersTrait {
         if(!realpath($stubsPath)) return;
         $installedVersion = static::marinarPackageVersion(static::$packageName);
         if(realpath(base_path().DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.static::$packageName.'.php')) { //updating
-            if(config(static::$packageName.'.version') === $installedVersion) {
+            if($installedVersion !== 'dev-main' && config(static::$packageName.'.version') === $installedVersion) {
                 return;
             }
             $this->setVersion($installedVersion);
