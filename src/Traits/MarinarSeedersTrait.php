@@ -156,15 +156,15 @@ trait MarinarSeedersTrait {
                 base_path('..' . DIRECTORY_SEPARATOR . substr($path, strlen($copyDir) + 1)) );
 
             $createUpdateStub = false;
-            if(realpath($appPath)) {
-                if (in_array($appPath, $excludeStubs)) continue; //do not update
-                if (is_dir($path)) {
-                    static::cleanStubsForUpdate($path, $copyDir, $packageName);
-                    if (is_dir($appPath) && (iterator_count(new \DirectoryIterator($appPath)) - 2) === 0) {
-                        rmdir($appPath);
-                    }
-                    continue;
+            if (in_array($appPath, $excludeStubs)) continue; //do not update
+            if (is_dir($path)) {
+                static::cleanStubsForUpdate($path, $copyDir, $packageName);
+                if (is_dir($appPath) && (iterator_count(new \DirectoryIterator($appPath)) - 2) === 0) {
+                    rmdir($appPath);
                 }
+                continue;
+            }
+            if(realpath($appPath)) {
                 if (!is_file($appPath)) continue;
                 //stubs that return configurable array
                 if (in_array($appPath, $valuesStubs) || dirInArray(dirname($appPath), $valuesStubs)) {
