@@ -249,6 +249,8 @@ trait MarinarSeedersTrait {
                         continue;
                     }
                 }
+            } else {
+                $pathContent = file_get_contents($path);
             }
 
             //create manual update stub file - file is changed
