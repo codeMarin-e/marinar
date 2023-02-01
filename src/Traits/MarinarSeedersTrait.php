@@ -154,97 +154,100 @@ trait MarinarSeedersTrait {
                 DIRECTORY_SEPARATOR.'project'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'project'.DIRECTORY_SEPARATOR,
                 DIRECTORY_SEPARATOR.'project'.DIRECTORY_SEPARATOR,
                 base_path('..' . DIRECTORY_SEPARATOR . substr($path, strlen($copyDir) + 1)) );
-            if(in_array($appPath, $excludeStubs)) continue; //do not update
-            if(is_dir($path)) {
-                static::cleanStubsForUpdate($path, $copyDir, $packageName);
-                if (is_dir($appPath) && (iterator_count(new \DirectoryIterator($appPath))-2) === 0) {
-                    rmdir($appPath);
-                }
-                continue;
-            }
-            if(!is_file($appPath)) continue;
-            //stubs that return configurable array
-            if(in_array($appPath, $valuesStubs) || dirInArray(dirname($appPath), $valuesStubs)) {
-                $pathArray = include($path);
-                $appPathArray = include($appPath);
-                if(!checkConfigFileForUpdate($appPathArray, $pathArray)) continue; //there is no new config key
-                $createUpdateStub = true;
-                $pathContent = file_get_contents($path);
-            } else {  //end stubs that return configurable array
-                $fileContent = file_get_contents($appPath);
-                $startComment = $endComment = false;
-                foreach(config('marinar.ext_comments') as $endsWith => $commentType) {
-                    if(!Str::endsWith($appPath, $endsWith)) continue;
-                    $startComment = str_replace('__COMMENT__', '@ADDON', $commentType)."\n";
-                    $endComment = str_replace('__COMMENT__', '@END_ADDON', $commentType)."\n";
-                    break;
-                }
-                $createUpdateStub = false;
-                if($startComment !== false) { //addonable file
-                    //add slashes for the regular expression
-                    $startAddon = $endAddon = "";
-                    for($index = 0; $index < strlen($startComment); $index++){
-                        if(in_array($startComment[$index],["/", "{", "-", '@'])) $startAddon .= "\\";
-                        $startAddon .= $startComment[$index];
-                    }
-                    for($index = 0; $index < strlen($endComment); $index++){
-                        if(in_array($endComment[$index],["/", "{", "-", '@'])) $endAddon .= "\\";
-                        $endAddon .= $endComment[$index];
-                    }
 
-                    preg_match_all("/([ \t])*(".$startAddon.")([\s\S]*?)(".$endAddon.")/", $fileContent, $foundAddons);
-                    if(isset($foundAddons[0]) && !empty($foundAddons[0])) { //found @ADDONS
-                        $fileContent = str_replace($foundAddons[0], "", $fileContent);
-                        $alreadyUsedHooks = [];
-                        foreach($foundAddons[0] as $index => $addonScript) {
-                            $addonScript = str_replace([' ', "\t", "\n"], '', $addonScript);
-                            foreach(config($packageName.'.addons') as $addonMainClass) {
-                                if(!method_exists($addonMainClass, 'injects' )) continue;
-                                $injectAddonClass = $addonMainClass::injects();
-                                if(!method_exists($injectAddonClass, 'addonsMap')) continue;
-                                $injectAddonClass::configure();
-                                $injectAddonClass::addonsMap(useExcludes: false); //do not inject but still need to replace
-                                if(!isset($injectAddonClass::$addons[$appPath])) continue;
+            $createUpdateStub = false;
+            if(realpath($appPath)) {
+                if (in_array($appPath, $excludeStubs)) continue; //do not update
+                if (is_dir($path)) {
+                    static::cleanStubsForUpdate($path, $copyDir, $packageName);
+                    if (is_dir($appPath) && (iterator_count(new \DirectoryIterator($appPath)) - 2) === 0) {
+                        rmdir($appPath);
+                    }
+                    continue;
+                }
+                if (!is_file($appPath)) continue;
+                //stubs that return configurable array
+                if (in_array($appPath, $valuesStubs) || dirInArray(dirname($appPath), $valuesStubs)) {
+                    $pathArray = include($path);
+                    $appPathArray = include($appPath);
+                    if (!checkConfigFileForUpdate($appPathArray, $pathArray)) continue; //there is no new config key
+                    $createUpdateStub = true;
+                    $pathContent = file_get_contents($path);
+                } else {  //end stubs that return configurable array
+                    $fileContent = file_get_contents($appPath);
+                    $startComment = $endComment = false;
+                    foreach (config('marinar.ext_comments') as $endsWith => $commentType) {
+                        if (!Str::endsWith($appPath, $endsWith)) continue;
+                        $startComment = str_replace('__COMMENT__', '@ADDON', $commentType) . "\n";
+                        $endComment = str_replace('__COMMENT__', '@END_ADDON', $commentType) . "\n";
+                        break;
+                    }
+                    if ($startComment !== false) { //addonable file
+                        //add slashes for the regular expression
+                        $startAddon = $endAddon = "";
+                        for ($index = 0; $index < strlen($startComment); $index++) {
+                            if (in_array($startComment[$index], ["/", "{", "-", '@'])) $startAddon .= "\\";
+                            $startAddon .= $startComment[$index];
+                        }
+                        for ($index = 0; $index < strlen($endComment); $index++) {
+                            if (in_array($endComment[$index], ["/", "{", "-", '@'])) $endAddon .= "\\";
+                            $endAddon .= $endComment[$index];
+                        }
 
-                                foreach($injectAddonClass::$addons[$appPath] as $hook => $hookAddonScript){
-                                    if(isset($alreadyUsedHooks[$injectAddonClass]) && in_array($hook, $alreadyUsedHooks[$injectAddonClass])) continue; //for same content hooks
-                                    $hookAddonScript = str_replace([' ', "\t", "\n"], '', $startComment.$hookAddonScript.$endComment);
-                                    if($hookAddonScript === $addonScript) {
-                                        //addon is from this class(package)
-                                        static::$addons[ $appPath ][ $index ] = [
-                                            'class' => $injectAddonClass,
-                                            'hook' => $hook
-                                        ];
-                                        $alreadyUsedHooks[$injectAddonClass][] = $hook;
-                                        break;
+                        preg_match_all("/([ \t])*(" . $startAddon . ")([\s\S]*?)(" . $endAddon . ")/", $fileContent, $foundAddons);
+                        if (isset($foundAddons[0]) && !empty($foundAddons[0])) { //found @ADDONS
+                            $fileContent = str_replace($foundAddons[0], "", $fileContent);
+                            $alreadyUsedHooks = [];
+                            foreach ($foundAddons[0] as $index => $addonScript) {
+                                $addonScript = str_replace([' ', "\t", "\n"], '', $addonScript);
+                                foreach (config($packageName . '.addons') as $addonMainClass) {
+                                    if (!method_exists($addonMainClass, 'injects')) continue;
+                                    $injectAddonClass = $addonMainClass::injects();
+                                    if (!method_exists($injectAddonClass, 'addonsMap')) continue;
+                                    $injectAddonClass::configure();
+                                    $injectAddonClass::addonsMap(useExcludes: false); //do not inject but still need to replace
+                                    if (!isset($injectAddonClass::$addons[$appPath])) continue;
+
+                                    foreach ($injectAddonClass::$addons[$appPath] as $hook => $hookAddonScript) {
+                                        if (isset($alreadyUsedHooks[$injectAddonClass]) && in_array($hook, $alreadyUsedHooks[$injectAddonClass])) continue; //for same content hooks
+                                        $hookAddonScript = str_replace([' ', "\t", "\n"], '', $startComment . $hookAddonScript . $endComment);
+                                        if ($hookAddonScript === $addonScript) {
+                                            //addon is from this class(package)
+                                            static::$addons[$appPath][$index] = [
+                                                'class' => $injectAddonClass,
+                                                'hook' => $hook
+                                            ];
+                                            $alreadyUsedHooks[$injectAddonClass][] = $hook;
+                                            break;
+                                        }
                                     }
-                                }
 
+                                }
                             }
                         }
                     }
-                }
-                $fileContent = str_replace([' ', "\t", "\n"], '', $fileContent);
+                    $fileContent = str_replace([' ', "\t", "\n"], '', $fileContent);
 
-                //if there is a stub file - it should have, but just for safety
-                $oldStubPath = implode( DIRECTORY_SEPARATOR, [
-                    base_path(), 'storage', 'marinar_stubs', $packageName, substr($path, strlen($copyDir) + 1)
-                ]);
-                if(realpath($oldStubPath)) {
-                    if($fileContent !== str_replace([' ', "\t", "\n"], '', file_get_contents($oldStubPath))) {
-                        //cannot update - file is changed
-                        $createUpdateStub = true;
+                    //if there is a stub file - it should have, but just for safety
+                    $oldStubPath = implode(DIRECTORY_SEPARATOR, [
+                        base_path(), 'storage', 'marinar_stubs', $packageName, substr($path, strlen($copyDir) + 1)
+                    ]);
+                    if (realpath($oldStubPath)) {
+                        if ($fileContent !== str_replace([' ', "\t", "\n"], '', file_get_contents($oldStubPath))) {
+                            //cannot update - file is changed
+                            $createUpdateStub = true;
+                        }
                     }
-                }
 
-                //NOT REALLY NECESSARY - NEED TO CHECK WHICH IS FASTER AND TAKE LESS MEMORY (THIS OR UNLINK-COPY-ADDON)
-                $pathContent = file_get_contents($path);
-                if($fileContent === str_replace([' ', "\t", "\n"], '', $pathContent)) {
-                    if(isset(static::$addons[ $appPath ])) {
-                        static::$addons[ $appPath ] = []; //static properties cannot be unset
+                    //NOT REALLY NECESSARY - NEED TO CHECK WHICH IS FASTER AND TAKE LESS MEMORY (THIS OR UNLINK-COPY-ADDON)
+                    $pathContent = file_get_contents($path);
+                    if ($fileContent === str_replace([' ', "\t", "\n"], '', $pathContent)) {
+                        if (isset(static::$addons[$appPath])) {
+                            static::$addons[$appPath] = []; //static properties cannot be unset
+                        }
+                        //do not update - file is same
+                        continue;
                     }
-                    //do not update - file is same
-                    continue;
                 }
             }
 
