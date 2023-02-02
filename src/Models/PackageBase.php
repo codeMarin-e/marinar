@@ -83,7 +83,7 @@
             echo "$command \n";
             $process = new Process( explode(' ', $command) );
             $process->setWorkingDirectory( static::mainFolder() );
-            $process->setTimeout(180);
+            $process->setTimeout(380);
             $process->run();
 
             // executes after the command finishes
@@ -211,7 +211,7 @@
                     echo "{$forProcessCmd} \n";
                     $process = new Process(explode(' ', $forProcessCmd));
                     $process->setWorkingDirectory(static::mainFolder());
-                    $process->setTimeout(180);
+                    $process->setTimeout(380);
                     $process->run();
                     // executes after the command finishes
                     if (!$process->isSuccessful()) {
