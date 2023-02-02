@@ -57,8 +57,6 @@
          * @return mixed
          */
         public function handle() {
-            dd('hi :)');
-
             if($types = $this->option('type')) {
                 static::$cleaning = array_intersect_key(static::$cleaning, array_flip($types));
             }

@@ -46,4 +46,11 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+
+    protected static function boot() {
+        parent::boot();
+
+        // @HOOK_CONSTRUCT
+    }
 }
