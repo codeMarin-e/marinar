@@ -40,9 +40,9 @@
                     $command->info("Done cleaning sessions!");
                     return $next($command);
                 },
-
-                // @HOOK_CLEANING
             ];
+
+            // @HOOK_CLEANING
         }
 
         public function sessionGC() {
