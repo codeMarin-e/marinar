@@ -52,6 +52,13 @@ return [
     ],
 
     /**
+     * Type of garbage collecting
+     * provider - clean in 30% of the '/admin' requests
+     * cron - call the cleaning in cronjob //TO DO - may do it in the laravel schedule
+     */
+    'garbage_collecting' => env('GARBAGE_COLLECTING', 'provider'),
+
+    /**
      * Addons hooked to the package
      */
     'addons' => [
