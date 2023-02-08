@@ -24,7 +24,7 @@
     },
     "autoload": {
         "files": [
-            "src/Fixes/elfinder/ElFinderController.php"
+            "src/stubs/app/Fixes/elfinder/ElFinderController.php"
         ],
         "psr-4": {
             "Marinar\\Marinar\\": "src/"
