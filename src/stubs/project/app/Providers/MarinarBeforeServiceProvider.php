@@ -49,12 +49,12 @@
             });
 
             Request::macro('whereIAm', function() {
-                if(!is_null(static::$where_i_am))
-                    return static::$where_i_am;
+                if(!is_null(\App\Providers\MarinarBeforeServiceProvider::$where_i_am))
+                    return \App\Providers\MarinarBeforeServiceProvider::$where_i_am;
                 if (app()->runningInConsole()) {
-                    return (static::$where_i_am = 'CLI');
+                    return (\App\Providers\MarinarBeforeServiceProvider::$where_i_am = 'CLI');
                 }
-                $routeSegments = static::routeSegments();
+                $routeSegments = \App\Providers\MarinarBeforeServiceProvider::routeSegments();
                 foreach(config('marinar.where_route_prefixes') as $whereRoutePrefixKey => $whereRoutePrefix) {
                     $whereRoutePrefixSegments = explode('/', $whereRoutePrefix);
                     $whereRoutePrefixSegments =  array_values(array_filter($whereRoutePrefixSegments, function ($value) {
@@ -68,10 +68,10 @@
                         }
                     }
                     if($i_am_in) {
-                        static::$where_i_am = $whereRoutePrefixKey;
+                        \App\Providers\MarinarBeforeServiceProvider::$where_i_am = $whereRoutePrefixKey;
                     }
                 }
-                return static::$where_i_am;
+                return \App\Providers\MarinarBeforeServiceProvider::$where_i_am;
             });
 
 
