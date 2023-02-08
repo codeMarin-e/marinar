@@ -6,13 +6,12 @@
     use Illuminate\Database\Eloquent\Casts\Attribute;
     use Illuminate\Support\Facades\Hash;
     use Laravel\Fortify\TwoFactorAuthenticatable;
-    use App\Traits\Addressable;
     use Spatie\Permission\Traits\HasRoles;
 
     trait MarinarUserTrait {
 
         use AddVariable;
-        use Addressable;
+        use \App\Traits\Addressable;
         use HasRoles;
         use TwoFactorAuthenticatable;
         use MacroableModel;
