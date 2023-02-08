@@ -1,6 +1,6 @@
 <?php
 
-    namespace Marinar\Marinar\Traits;
+    namespace App\Traits;
 
     use App\Models\AddVar;
 

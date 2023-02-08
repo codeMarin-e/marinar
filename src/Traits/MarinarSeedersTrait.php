@@ -250,6 +250,11 @@ trait MarinarSeedersTrait {
                     }
                 }
             } else {
+                if(!realpath(dirname($appPath))) {
+                    $old = umask(0);
+                    mkdir(dirname($appPath), 0777, true);
+                    umask($old);
+                }
                 $pathContent = file_get_contents($path);
             }
 
@@ -732,6 +737,7 @@ trait MarinarSeedersTrait {
     private function autoInstall() {
         static::configure();
         $this->getRefComponents();
+        if(config(static::$packageName.'.install_behavior', true) === false) return; //do not install/update
         $this->updateAddonInjects();
         $this->injectAddons();
         $this->stubFiles();
@@ -743,8 +749,8 @@ trait MarinarSeedersTrait {
 
     private function autoRemove() {
         static::configure();
-        if(config(static::$packageName.'.delete_behavior', false) === 2) return; //keep everything
         $this->getRefComponents();
+        if(config(static::$packageName.'.delete_behavior', false) === 2) return; //keep everything
         if(method_exists($this, 'clearDB')) $this->clearDB();
         $this->dbMigrateRollback();
         $this->updateAddonInjects(clear: true);

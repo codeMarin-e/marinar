@@ -11,7 +11,7 @@
 |
 */
 
-$app = new Marinar\Marinar\Fixes\App(
+$app = new App\Fixes\App(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 

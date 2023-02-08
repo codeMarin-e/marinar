@@ -1,9 +1,17 @@
 <?php
 
-    namespace App\Models;
+namespace App\Models;
 
-    use Marinar\Marinar\Models\SiteBase;
+use App\Traits\MacroableModel;
+use Illuminate\Database\Eloquent\Model;
 
-    class Site extends SiteBase{
-        // @HOOK_SITE_TRAITS
-    }
+class Site extends Model
+{
+    protected $fillable = [ 'domain', 'language' ];
+
+    public $config = [];
+
+    use MacroableModel;
+
+    // @HOOK_TRAITS
+}

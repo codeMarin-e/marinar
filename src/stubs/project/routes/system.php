@@ -93,13 +93,22 @@
             ->name('profile');
         Route::patch('/profile', [ProfileController::class, 'patch']);
         //END PROFILE
-        //TOW FACTOR AUTHENTICATION
+        //TWO FACTOR AUTHENTICATION
         Route::get('/two-factor', [ProfileController::class, 'twoFactor'])
             ->middleware(['password.confirm'])
             ->name('two-factor');
-        //END TOW FACTOR AUTHENTICATION
+        //END TWO FACTOR AUTHENTICATION
 
         Route::get('/', function () {
             return view('home');
         });
+
+        //ADDING PACKAGE ROUTES
+        $systemPathsDir = implode(DIRECTORY_SEPARATOR, array(base_path(), 'routes', 'loged'));
+        foreach(glob($systemPathsDir.DIRECTORY_SEPARATOR.'*.php') as $path) include $path;
+
     });
+
+    //ADDING PACKAGE ROUTES
+    $systemPathsDir = implode(DIRECTORY_SEPARATOR, array(base_path(), 'routes', 'system'));
+    foreach(glob($systemPathsDir.DIRECTORY_SEPARATOR.'*.php') as $path) include $path;

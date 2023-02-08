@@ -1,5 +1,5 @@
 <?php
-    namespace Marinar\Marinar\Fixes\UrlGenerator;
+    namespace App\Fixes\UrlGenerator;
 
     use Illuminate\Routing\UrlGenerator as UrlGeneratorBase;
     use Illuminate\Support\Facades\URL;

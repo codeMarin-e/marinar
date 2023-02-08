@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Marinar\Marinar\Traits\MarinarUserTrait;
+use App\Traits\MarinarUserTrait;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -15,7 +15,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     use MarinarUserTrait;
 
-    // @HOOK_USER_TRAITS
+    // @HOOK_TRAITS
 
     /**
      * The attributes that are mass assignable.
@@ -46,11 +46,4 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-
-    protected static function boot() {
-        parent::boot();
-
-        // @HOOK_CONSTRUCT
-    }
 }

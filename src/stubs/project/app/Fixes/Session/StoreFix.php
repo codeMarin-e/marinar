@@ -1,8 +1,6 @@
 <?php
-    namespace Marinar\Marinar\Fixes\Session;
+    namespace App\Fixes\Session;
 
-    use App\Providers\MarinarBeforeServiceProvider;
-    use Marinar\Marinar\Models\Module;
     use Illuminate\Cookie\CookieValuePrefix;
     use Illuminate\Cookie\Middleware\EncryptCookies;
     use Illuminate\Support\Str;

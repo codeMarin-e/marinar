@@ -186,7 +186,7 @@
             Illuminate\Auth\Passwords\PasswordResetServiceProvider::class,
 //        Illuminate\Session\SessionServiceProvider::class,
 
-            Marinar\Marinar\Fixes\Session\MarinarSessionServiceProvider::class,
+            App\Fixes\Session\MarinarSessionServiceProvider::class,
             App\Providers\MarinarBeforeServiceProvider::class,
 
             Illuminate\Translation\TranslationServiceProvider::class,

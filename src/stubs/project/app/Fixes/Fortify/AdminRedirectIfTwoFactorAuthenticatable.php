@@ -1,5 +1,5 @@
 <?php
-    namespace Marinar\Marinar\Fixes\Fortify;
+    namespace App\Fixes\Fortify;
 
     use \Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable as Base;
     use Laravel\Fortify\Events\TwoFactorAuthenticationChallenged;

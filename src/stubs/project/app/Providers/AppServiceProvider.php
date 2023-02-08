@@ -7,8 +7,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use Marinar\Marinar\Console\Commands\MarinarPackage;
-use Marinar\Marinar\Http\Middleware\CheckSite;
+use App\Http\Middleware\CheckSite;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        include \Marinar\Marinar\Marinar::getPackageMainDir().DIRECTORY_SEPARATOR.'helpers.php';
+        include base_path().DIRECTORY_SEPARATOR.'Http'.DIRECTORY_SEPARATOR.'Models'.DIRECTORY_SEPARATOR.'helpers.php';
         if(!Schema::hasTable(Site::getModel()->getTable()))
             return;
         if($chSite = app()->make('Site')) {

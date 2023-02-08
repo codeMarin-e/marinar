@@ -1,5 +1,5 @@
 <?php
-    namespace Marinar\Marinar\Fixes\Session;
+    namespace App\Fixes\Session;
 
     use Illuminate\Session\EncryptedStore;
     use \Illuminate\Session\SessionManager as OriginalSessionManager;

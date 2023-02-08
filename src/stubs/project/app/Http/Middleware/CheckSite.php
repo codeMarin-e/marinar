@@ -1,5 +1,5 @@
 <?php
-    namespace Marinar\Marinar\Http\Middleware;
+    namespace App\Http\Middleware;
 
     class CheckSite {
 

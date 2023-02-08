@@ -1,6 +1,6 @@
 <?php
 
-    namespace Marinar\Marinar\Fixes\Fortify;
+    namespace App\Fixes\Fortify;
 
     use Illuminate\Validation\ValidationException;
     use Laravel\Fortify\Contracts\FailedTwoFactorLoginResponse as FailedTwoFactorLoginResponseContract;

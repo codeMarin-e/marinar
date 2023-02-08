@@ -1,23 +1,14 @@
 <?php
-    namespace Marinar\Marinar\Traits;
+    namespace App\Traits;
 
     use App\Notifications\ResetPassword;
     use App\Notifications\VerifyEmail;
     use Illuminate\Database\Eloquent\Casts\Attribute;
     use Illuminate\Support\Facades\Hash;
     use Laravel\Fortify\TwoFactorAuthenticatable;
-    use Marinar\Addressable\Traits\Addressable;
+    use App\Traits\Addressable;
     use Spatie\Permission\Traits\HasRoles;
 
-    /**
-     * SHOULD ADD Illuminate\Contracts\Auth\MustVerifyEmail INTERFACE
-     *
-     *
-     *
-     *
-     * Trait MarinarUserTrait
-     * @package Marinar\Marinar\Traits
-     */
     trait MarinarUserTrait {
 
         use AddVariable;

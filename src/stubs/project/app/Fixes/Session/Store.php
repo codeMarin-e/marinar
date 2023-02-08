@@ -1,6 +1,6 @@
 <?php
 
-    namespace Marinar\Marinar\Fixes\Session;
+    namespace App\Fixes\Session;
 
     use \Illuminate\Session\Store as OriginalStore;
 

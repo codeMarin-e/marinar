@@ -21,8 +21,8 @@ use Laravel\Fortify\Contracts\FailedTwoFactorLoginResponse as FailedTwoFactorLog
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Illuminate\Support\Facades\Hash;
-use Marinar\Marinar\Fixes\Fortify\AdminRedirectIfTwoFactorAuthenticatable;
-use Marinar\Marinar\Fixes\Fortify\FailedTwoFactorLoginResponse;
+use App\Fixes\Fortify\AdminRedirectIfTwoFactorAuthenticatable;
+use App\Fixes\Fortify\FailedTwoFactorLoginResponse;
 
 class FortifyServiceProvider extends ServiceProvider
 {

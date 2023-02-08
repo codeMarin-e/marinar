@@ -1,8 +1,8 @@
 <?php
 
-    namespace Marinar\Marinar\Traits;
+    namespace App\Traits;
 
-    use Marinar\Marinar\Traits\Addonable;
+    use App\Traits\Addonable;
     use Closure;
     use ReflectionClass;
     use ReflectionMethod;
@@ -12,7 +12,7 @@
         use Addonable;
 
         public static function bootMacroableModel() {
-            $dispatcher = new \Marinar\Marinar\Fixes\Events\Dispatcher();
+            $dispatcher = new \App\Fixes\Events\Dispatcher();
             $dispatcher->loadFromParentObj( parent::getEventDispatcher() );
             static::setEventDispatcher( $dispatcher );
         }

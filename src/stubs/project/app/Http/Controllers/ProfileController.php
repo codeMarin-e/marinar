@@ -2,14 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Cooperative;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Marinar\Attachments\Models\Attachment;
 use Marinar\Infopages\Models\Infopage;
 
@@ -37,9 +33,9 @@ class ProfileController extends Controller
             'addr.lname' => 'required|string|max:255',
             'email_for_confirm' => ['required', 'string', 'email', function($attribute, $value, $fail) use ($authUser) {
                 if($suchUser = \App\Models\User::where( function($qry) use ($value) {
-                        $qry->where('email', $value)
-                            ->orWhere('email_for_confirm', $value);
-                    })
+                    $qry->where('email', $value)
+                        ->orWhere('email_for_confirm', $value);
+                })
                     ->whereHas('roles', function($qry) {
                         $qry->whereIn("name", ["Customer"])
                             ->where("guard_name", "web");

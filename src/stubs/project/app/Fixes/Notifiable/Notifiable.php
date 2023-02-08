@@ -1,6 +1,6 @@
 <?php
 
-    namespace Marinar\Marinar\Fixes\Notifiable;
+    namespace App\Fixes\Notifiable;
 
     use Illuminate\Notifications\HasDatabaseNotifications;
     use Illuminate\Notifications\RoutesNotifications;

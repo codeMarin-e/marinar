@@ -1,5 +1,5 @@
 <?php
-    namespace Marinar\Marinar\Traits;
+    namespace App\Traits;
 
     use Illuminate\Database\Eloquent\Casts\Attribute;
     use Illuminate\Support\Str;
@@ -7,7 +7,6 @@
     /**
      * @see \Illuminate\Database\Eloquent\Model used Traits
      * Trait Addonable
-     * @package Marinar\Marinar\Traits
      */
     trait Addonable {
         public static $addonFillable = [];
