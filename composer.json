@@ -23,9 +23,6 @@
         "rap2hpoutre/laravel-log-viewer": "^2.2"
     },
     "autoload": {
-        "files": [
-            "src/stubs/app/Fixes/elfinder/ElFinderController.php"
-        ],
         "psr-4": {
             "Marinar\\Marinar\\": "src/"
         }

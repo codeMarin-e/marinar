@@ -119,6 +119,16 @@
                 if(!in_array($operation, $composerJSON['scripts']['post-autoload-dump'])) {
                     $composerJSON['scripts']['post-autoload-dump'][] = $operation;
                 }
+                if(!isset($composerJSON['autoload'])) {
+                    $composerJSON['scripts'] = array();
+                }
+                if(!isset($composerJSON['autoload']['files'])) {
+                    $composerJSON['autoload']['files'] = array();
+                }
+                $file = "app/Fixes/elfinder/ElFinderController.php";
+                if(!in_array($operation, $composerJSON['autoload']['files'])) {
+                    $composerJSON['autoload']['files'][] = $file;
+                }
                 if( !($composerJSON = json_encode($composerJSON, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
                     return false;
                 }
