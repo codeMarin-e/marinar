@@ -9,7 +9,7 @@
         {{ $message }}
     @endif
 
-    <form method="POST" action="{{ route('password.confirm') }}" autocomplete="off">
+    <form method="POST" action="{{ route('password.confirm.post') }}" autocomplete="off">
         @csrf
         <label for="confirm[password]">@lang('confirm-password.password')</label>
         <input type="password"

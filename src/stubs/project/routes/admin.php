@@ -24,7 +24,7 @@
 //                ]));
 
             Route::get('/logout', [AuthenticatedSessionController::class, 'destroy'])
-                ->name('logout');
+                ->name('logout.get');
 
             Route::get('/two-factor-challenge',  [LoginController::class, 'twoFactorChallenge'])
                 ->middleware(['guest:'.config('fortify.guard')])

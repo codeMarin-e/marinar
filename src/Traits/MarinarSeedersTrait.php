@@ -750,7 +750,7 @@ trait MarinarSeedersTrait {
     private function autoRemove() {
         static::configure();
         $this->getRefComponents();
-        if(config(static::$packageName.'.delete_behavior', false) === 2) return; //keep everything
+        if((int)config(static::$packageName.'.delete_behavior', false) === 2) return; //keep everything
         if(method_exists($this, 'clearDB')) $this->clearDB();
         $this->dbMigrateRollback();
         $this->updateAddonInjects(clear: true);
