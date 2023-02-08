@@ -36,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        include base_path().DIRECTORY_SEPARATOR.'Http'.DIRECTORY_SEPARATOR.'Models'.DIRECTORY_SEPARATOR.'helpers.php';
+        include base_path().DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'Models'.DIRECTORY_SEPARATOR.'helpers.php';
         if(!Schema::hasTable(Site::getModel()->getTable()))
             return;
         if($chSite = app()->make('Site')) {

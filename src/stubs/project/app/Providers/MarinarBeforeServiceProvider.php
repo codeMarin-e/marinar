@@ -7,6 +7,7 @@
     use Illuminate\Http\Request;
     use Illuminate\Support\Facades\App;
     use Illuminate\Support\Facades\Gate;
+    use App\Fixes\UrlGenerator\UrlGenerator;
     use Illuminate\Support\ServiceProvider;
 
     class MarinarBeforeServiceProvider extends ServiceProvider {

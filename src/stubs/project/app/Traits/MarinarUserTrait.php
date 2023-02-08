@@ -11,7 +11,7 @@
     trait MarinarUserTrait {
 
         use AddVariable;
-        use \App\Traits\Addressable;
+        use MarinarUserAddressableTrait;
         use HasRoles;
         use TwoFactorAuthenticatable;
         use MacroableModel;
