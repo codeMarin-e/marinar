@@ -2,6 +2,12 @@
 
     namespace App\Models;
 
+    use Composer\Script\Event;
+    use Composer\Installer\PackageEvent;
+    use Composer\Installer\InstallerEvent;
+    use Symfony\Component\Process\Exception\ProcessFailedException;
+    use Symfony\Component\Process\Process;
+
     class Package {
         public static function mainFolder() {
             return dirname( dirname( \App\Providers\MarinarBeforeServiceProvider::getInFolder()) );
