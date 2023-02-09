@@ -22,9 +22,9 @@ trait MarinarSeedersTrait {
         $this->refComponents = $Reflection->getValue($this->command);
     }
 
-    private function execCommand($command, $show = false, $output = false) {
+    private function execCommand($command, $show = false, $output = false, $workingDir = null) {
         $process = Process::fromShellCommandline( $command );
-        $process->setWorkingDirectory( base_path() );
+        $process->setWorkingDirectory( $workingDir?? base_path() );
         // $process->setTty(true);
         $process->setTimeout(null);
         $process->run();
@@ -49,21 +49,73 @@ trait MarinarSeedersTrait {
         });
     }
 
+    private function marinarStubFromGitVersion($version) {
+        $this->clearMarinarStubs();
+        $vendorPackageDir = dirname( static::$packageDir );
+        //check version exists in the package
+        $command = Package::replaceEnvCommand("git tag -l '{$version}'",
+            base_path()//where to search for commands_replace_env.php file
+        );
+        $response = $this->execCommand($command, output: true, workingDir: $vendorPackageDir);
+        if($response != $version) return false;
+
+        $oldStubsPath = implode(DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', static::$packageName]);
+        $versionStubPackageDir = implode(DIRECTORY_SEPARATOR, [ $oldStubsPath, $version, 'src']);
+        $versionStubPackageStubs = implode(DIRECTORY_SEPARATOR, [ $versionStubPackageDir, 'stubs']);
+        $versionStubPackageHooks = implode(DIRECTORY_SEPARATOR, [ $versionStubPackageDir, 'hooks']);
+
+        //make directory for marinar_stub, clone tag version, copy stubs in the marinar_stub package dir
+        $command = Package::replaceEnvCommand("mkdir -p '".static::$packageName."' &&
+            git clone '{$vendorPackageDir}' '{$version} &&
+            cp -rf '{$versionStubPackageStubs}".DIRECTORY_SEPARATOR.".' '{$oldStubsPath}'",
+            base_path()//where to search for commands_replace_env.php file
+        );
+        if(!$this->execCommand($command, workingDir: $oldStubsPath)) return false;
+        //check for hooks
+        if(realpath($versionStubPackageHooks)) {
+            $command = Package::replaceEnvCommand("cp -rf '{$versionStubPackageHooks}' '{$oldStubsPath}'",
+                base_path()//where to search for commands_replace_env.php file
+            );
+            $this->execCommand($command);
+        }
+        //remove the cloned folder
+        $command = Package::replaceEnvCommand("rm -rf '".dirname($versionStubPackageDir)."'",
+            base_path()//where to search for commands_replace_env.php file
+        );
+        $this->execCommand($command);
+        $this->givePermissions( $oldStubsPath ); //give permissions
+        file_put_contents($oldStubsPath.DIRECTORY_SEPARATOR.'version.php', "<?php \nreturn '{$version}';");
+        return true;
+    }
+
+    private function checkMarinarStubs() {
+        $oldStubsVersion = implode(DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', static::$packageName, 'version.php']);
+        if(!realpath($oldStubsVersion)) {
+            if(config(static::$packageName.'.version') == 'dev-main') {
+                $this->copyToMarinarStubs();
+                $this->copyToMarinarHooks();
+                return true;
+            }
+            return $this->marinarStubFromGitVersion( config(static::$packageName.'.version'));
+        }
+        $oldStubVersion = include $oldStubsVersion;
+        if(config(static::$packageName.'.version') == $oldStubVersion) return true;
+        return $this->marinarStubFromGitVersion( config(static::$packageName.'.version'));
+    }
+
     private function stubFiles() {
         $stubsPath = implode(DIRECTORY_SEPARATOR, [ static::$packageDir, 'stubs' ]);
         if(!realpath($stubsPath)) return;
         $installedVersion = static::marinarPackageVersion(static::$packageName);
         if(realpath(base_path().DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.static::$packageName.'.php')) { //updating
-            if($installedVersion !== 'dev-main' && config(static::$packageName.'.version') === $installedVersion) {
-                return;
-            }
+            if(!$this->checkMarinarStubs()) throw \Exception('No marinar stub folder for: '.static::$packageName);
             $this->setVersion($installedVersion);
-            $this->updateStubFiles($installedVersion);
+            $this->updateStubFiles();
         } else { //first install
             $this->copyStubs($stubsPath,force: true);
             $this->setVersion($installedVersion);
         }
-        $this->copyToMarinarStubs();
+        $this->copyToMarinarStubs($installedVersion);
     }
 
     public static function marinarPackageVersion($packageName) {
@@ -83,7 +135,7 @@ trait MarinarSeedersTrait {
         return false;
     }
 
-    private function updateStubFiles($packageVersion) {
+    private function updateStubFiles() {
         static::$addons = [];
         static::cleanStubsForUpdate(
             static::$packageDir.DIRECTORY_SEPARATOR.'stubs',
@@ -400,16 +452,17 @@ trait MarinarSeedersTrait {
         });
     }
 
-    private function copyToMarinarStubs() {
+    private function copyToMarinarStubs($installedVersion) {
         $this->clearMarinarStubs();
         $copyDir = static::$packageDir.DIRECTORY_SEPARATOR.'stubs';
         $oldStubsPath = implode( DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', static::$packageName ]);
         $command = Package::replaceEnvCommand("mkdir -p '{$oldStubsPath}' && cp -rf '{$copyDir}".DIRECTORY_SEPARATOR.".' '{$oldStubsPath}'",
             base_path()//where to search for commands_replace_env.php file
         );
-        $this->refComponents->task("Coping marinar_stubs [$command]", function() use ($command, $oldStubsPath){
+        $this->refComponents->task("Coping marinar_stubs [$command]", function() use ($command, $oldStubsPath, $installedVersion){
             if(!$this->execCommand($command)) return false;
             $this->givePermissions( $oldStubsPath );
+            file_put_contents($oldStubsPath.DIRECTORY_SEPARATOR.'version.php', "<?php \nreturn '{$installedVersion}';");
             return true;
         });
     }
