@@ -108,13 +108,18 @@ trait MarinarSeedersTrait {
         if(!realpath($stubsPath)) return;
         $installedVersion = static::marinarPackageVersion(static::$packageName);
         if(realpath(base_path().DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.static::$packageName.'.php')) { //updating
+            $oldVersion = config(static::$packageName.'.version');
             if(!$this->checkMarinarStubs()) throw new \Exception('No marinar stub folder for: '.static::$packageName);
             $this->setVersion($installedVersion);
             $this->updateStubFiles();
-        } else { //first install
-            $this->copyStubs($stubsPath,force: true);
-            $this->setVersion($installedVersion);
+            if($installedVersion == 'dev-main' || $installedVersion != $oldVersion) {
+                $this->copyToMarinarStubs($installedVersion);
+            }
+            return;
         }
+        //first install
+        $this->copyStubs($stubsPath,force: true);
+        $this->setVersion($installedVersion);
         $this->copyToMarinarStubs($installedVersion);
     }
 
