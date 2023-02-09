@@ -53,24 +53,24 @@ trait MarinarSeedersTrait {
         $this->clearMarinarStubs();
         $vendorPackageDir = dirname( static::$packageDir );
         //check version exists in the package
-        $command = Package::replaceEnvCommand("git tag -l '{$version}'",
+        $command = Package::replaceEnvCommand("git tag -l 'v{$version}'",
             base_path()//where to search for commands_replace_env.php file
         );
         $response = $this->execCommand($command, output: true, workingDir: $vendorPackageDir);
-        if($response != $version) return false;
+        if(trim($response) != 'v'.$version) return false;
 
         $oldStubsPath = implode(DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', static::$packageName]);
-        $versionStubPackageDir = implode(DIRECTORY_SEPARATOR, [ $oldStubsPath, $version, 'src']);
+        $versionStubPackageDir = implode(DIRECTORY_SEPARATOR, [ $oldStubsPath, 'v'.$version, 'src']);
         $versionStubPackageStubs = implode(DIRECTORY_SEPARATOR, [ $versionStubPackageDir, 'stubs']);
         $versionStubPackageHooks = implode(DIRECTORY_SEPARATOR, [ $versionStubPackageDir, 'hooks']);
 
         //make directory for marinar_stub, clone tag version, copy stubs in the marinar_stub package dir
-        $command = Package::replaceEnvCommand("mkdir -p '".static::$packageName."' &&
-            git clone '{$vendorPackageDir}' '{$version} &&
-            cp -rf '{$versionStubPackageStubs}".DIRECTORY_SEPARATOR.".' '{$oldStubsPath}'",
+        $command = Package::replaceEnvCommand("mkdir -p '{$oldStubsPath}' && cd '{$oldStubsPath}' && ".
+            "git clone '{$vendorPackageDir}' 'v{$version}' && ".
+            "cp -rf '{$versionStubPackageStubs}".DIRECTORY_SEPARATOR.".' '{$oldStubsPath}'",
             base_path()//where to search for commands_replace_env.php file
         );
-        if(!$this->execCommand($command, workingDir: $oldStubsPath)) return false;
+        if(!$this->execCommand($command, workingDir: dirname($oldStubsPath))) return false;
         //check for hooks
         if(realpath($versionStubPackageHooks)) {
             $command = Package::replaceEnvCommand("cp -rf '{$versionStubPackageHooks}' '{$oldStubsPath}'",
@@ -108,7 +108,7 @@ trait MarinarSeedersTrait {
         if(!realpath($stubsPath)) return;
         $installedVersion = static::marinarPackageVersion(static::$packageName);
         if(realpath(base_path().DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.static::$packageName.'.php')) { //updating
-            if(!$this->checkMarinarStubs()) throw \Exception('No marinar stub folder for: '.static::$packageName);
+            if(!$this->checkMarinarStubs()) throw new \Exception('No marinar stub folder for: '.static::$packageName);
             $this->setVersion($installedVersion);
             $this->updateStubFiles();
         } else { //first install
@@ -790,13 +790,14 @@ trait MarinarSeedersTrait {
     private function autoInstall() {
         static::configure();
         $this->getRefComponents();
-        if(config(static::$packageName.'.install_behavior', true) === false) return; //do not install/update
-        $this->updateAddonInjects();
-        $this->injectAddons();
-        $this->stubFiles();
-        $this->copyToMarinarHooks();
-        $this->dbMigrate();
-        $this->seedMe();
+        if(config(static::$packageName.'.install_behavior', true) !== false) { //do not install/update
+            $this->updateAddonInjects();
+            $this->injectAddons();
+            $this->stubFiles();
+            $this->copyToMarinarHooks();
+            $this->dbMigrate();
+            $this->seedMe();
+        }
         $this->giveGitPermissions();
     }
 
