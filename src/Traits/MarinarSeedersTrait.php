@@ -793,7 +793,7 @@ trait MarinarSeedersTrait {
     }
 
     private function prepareComposerJSON() {
-        $mineComposer = json_decode(file_get_contents(static::$packageDir.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'composer.json') );
+        $mineComposer = json_decode(file_get_contents(static::$packageDir.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'composer.json'), true );
         $mergeArr = [
             'require' => [],
             'require-dev' => [],
