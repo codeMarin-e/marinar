@@ -792,6 +792,43 @@ trait MarinarSeedersTrait {
         }
     }
 
+    private function prepareComposerJSON() {
+        $mineComposer = json_decode(file_get_contents(static::$packageDir.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'composer.json') );
+        $mergeArr = [
+            'require' => [],
+            'require-dev' => [],
+        ];
+        foreach($mineComposer['require']?? [] as $package => $version) {
+            if(Str::startsWith($package, 'marinar/')) continue;
+            $mergeArr['require'][$package] = $version;
+        }
+        foreach($mineComposer['require-dev']?? [] as $package => $version) {
+            if(Str::startsWith($package, 'marinar/')) continue;
+            $mergeArr['require-dev'][$package] = $version;
+        }
+        if(empty($mergeArr['require']) && empty($mergeArr['require-dev'])) return;
+        $this->refComponents->task("Prepare composer.json", function() use ($mergeArr){
+            $composerPath = base_path() . DIRECTORY_SEPARATOR . 'composer.json';
+            if (!realpath($composerPath)) {
+                return false;
+            }
+            if( ($composerJSON = file_get_contents( $composerPath )) === false ) {
+                return false;
+            }
+            if(!($composerJSON = json_decode($composerJSON, true))) {
+                return false;
+            }
+            $composerJSON = array_replace_recursive($composerJSON, array_replace_recursive($mergeArr, $composerJSON));
+            if( !($composerJSON = json_encode($composerJSON, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
+                return false;
+            }
+
+            if(file_put_contents($composerPath, $composerJSON) === false) {
+                return false;
+            }
+        });
+    }
+
     private function autoInstall() {
         static::configure();
         $this->getRefComponents();
@@ -802,6 +839,8 @@ trait MarinarSeedersTrait {
             $this->copyToMarinarHooks();
             $this->dbMigrate();
             $this->seedMe();
+            $this->prepareComposerJSON();
+            if(method_exists($this, 'installMe')) $this->installMe();
         }
         $this->giveGitPermissions();
     }
@@ -810,7 +849,7 @@ trait MarinarSeedersTrait {
         static::configure();
         $this->getRefComponents();
         if((int)config(static::$packageName.'.delete_behavior', false) === 2) return; //keep everything
-        if(method_exists($this, 'clearDB')) $this->clearDB();
+        if(method_exists($this, 'clearMe')) $this->clearMe();
         $this->dbMigrateRollback();
         $this->updateAddonInjects(clear: true);
         $this->clearFiles();

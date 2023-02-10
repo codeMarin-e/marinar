@@ -120,7 +120,7 @@
                     $composerJSON['scripts']['post-autoload-dump'][] = $operation;
                 }
                 if(!isset($composerJSON['autoload'])) {
-                    $composerJSON['scripts'] = array();
+                    $composerJSON['autoload'] = array();
                 }
                 if(!isset($composerJSON['autoload']['files'])) {
                     $composerJSON['autoload']['files'] = array();
@@ -128,6 +128,21 @@
                 $file = "app/Fixes/elfinder/ElFinderController.php";
                 if(!in_array($operation, $composerJSON['autoload']['files'])) {
                     $composerJSON['autoload']['files'][] = $file;
+                }
+                if(!isset($composerJSON['require'])) {
+                    $composerJSON['require'] = array();
+                }
+                if(!isset($composerJSON['require-dev'])) {
+                    $composerJSON['require-dev'] = array();
+                }
+                $mineComposer = json_decode(file_get_contents(static::$packageDir.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'composer.json'), true );
+                foreach($mineComposer['require']?? [] as $package => $version) {
+                    if(Str::startsWith($package, 'marinar/')) continue;
+                    $composerJSON['require'][$package] = $version;
+                }
+                foreach($mineComposer['require-dev']?? [] as $package => $version) {
+                    if(Str::startsWith($package, 'marinar/')) continue;
+                    $composerJSON['require-dev'][$package] = $version;
                 }
                 if( !($composerJSON = json_encode($composerJSON, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))) {
                     return false;
