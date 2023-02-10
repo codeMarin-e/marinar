@@ -56,16 +56,16 @@
                         trans("admin/box_header.logout") : $logoutTrans;
                 @endphp
 
-{{--                @if($whereIam == 'admin')--}}
-{{--                    @can('use-module', 'marinar_settings')--}}
-{{--                        @php--}}
-{{--                            $settingsTrans = trans("{$whereIam}/box_header.settings");--}}
-{{--                            $settingsLink = $settingsTrans === "{$whereIam}/box_header.settings"?--}}
-{{--                                trans("admin/box_header.settings") : $settingsTrans;--}}
-{{--                        @endphp--}}
-{{--                        <a class="dropdown-item" href="{{route("{$whereIam}.settings.index")}}">{{$settingsLink}}</a>--}}
-{{--                    @endcan--}}
-{{--                @endif--}}
+                {{--                @if($whereIam == 'admin')--}}
+                {{--                    @can('use-module', 'marinar_settings')--}}
+                {{--                        @php--}}
+                {{--                            $settingsTrans = trans("{$whereIam}/box_header.settings");--}}
+                {{--                            $settingsLink = $settingsTrans === "{$whereIam}/box_header.settings"?--}}
+                {{--                                trans("admin/box_header.settings") : $settingsTrans;--}}
+                {{--                        @endphp--}}
+                {{--                        <a class="dropdown-item" href="{{route("{$whereIam}.settings.index")}}">{{$settingsLink}}</a>--}}
+                {{--                    @endcan--}}
+                {{--                @endif--}}
                 @if($whereIam == 'admin' && Route::has("{$whereIam}.users.edit"))
                     <a class="dropdown-item" href="{{ route("{$whereIam}.users.edit", [$authUser]) }}">{{$authUser->name}}</a>
                 @else
@@ -74,7 +74,7 @@
 
                 {{--  @HOOK_ADMIN_HEADER  --}}
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="{{route("{$whereIam}.logout")}}">{{$logoutLink}}</a>
+                <a class="dropdown-item" href="{{route("{$whereIam}.logout.get")}}">{{$logoutLink}}</a>
             </div>
         </li>
     </ul>

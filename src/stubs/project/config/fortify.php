@@ -74,7 +74,7 @@ return [
     |
     */
 
-    'prefix' => '',
+    'prefix' => env('APP_DIR', ''),
 
     'domain' => null,
 

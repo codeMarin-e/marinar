@@ -33,13 +33,14 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $addDir = config('app.dir')? '/'.config('app.dir') : '';
         if(request()->whereIAm() == 'admin') {
             //@see Laravel\Fortify\Http\Controllers\AuthenticatedSessionController@loginPipeline
             config([
                 'fortify.guard' => 'admin',
                 'fortify.home' => config('marinar.admin_home'),
-                'fortify.redirects.login' => '/admin/login',
-                'fortify.redirects.logout' => '/admin',
+                'fortify.redirects.login' => $addDir.'/admin/login',
+                'fortify.redirects.logout' => $addDir.'/admin',
                 'fortify.pipelines.login' => [ //@see Laravel\Fortify\Http\Controllers\AuthenticatedSessionController::loginPipeline
                     config('fortify.limiters.login') ? null : EnsureLoginIsNotThrottled::class,
                     Features::enabled(Features::twoFactorAuthentication()) ? AdminRedirectIfTwoFactorAuthenticatable::class : null,
@@ -51,7 +52,7 @@ class FortifyServiceProvider extends ServiceProvider
 
         Route::group([
             'namespace' => 'Laravel\Fortify\Http\Controllers',
-            'prefix' => '/admin',
+            'prefix' => $addDir.'/admin',
             'as' => 'admin.',
         ], function () {
             $this->loadRoutesFrom(base_path('vendor/laravel/fortify/routes/routes.php'));
