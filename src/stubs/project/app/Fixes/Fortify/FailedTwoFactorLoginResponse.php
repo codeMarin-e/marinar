@@ -19,7 +19,7 @@
         public function toResponse($request)
         {
             [$key, $message] = $request->has('recovery_code')
-                ? ['recovery_code', __('two-factor-challenge.recovery_code.wrong')]
+                ? ['recovery_code', __('two-factor-challenge.recovery_code_wrong')]
                 : ['code', __('two-factor-challenge.code.wrong')];
 
 
