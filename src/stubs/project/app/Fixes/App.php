@@ -10,7 +10,7 @@
     use Illuminate\Support\Collection;
 
     class App extends Application {
-        public function publicPath() {
+        public function publicPath($path = '') {
             return $this->basePath.DIRECTORY_SEPARATOR.env('PUBLIC_FOLDER', '..'.DIRECTORY_SEPARATOR.'public_html') ;
         }
 

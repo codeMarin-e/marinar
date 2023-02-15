@@ -6,8 +6,6 @@
     use Marinar\Marinar\Console\Commands\MarinarInstall;
     use Marinar\Marinar\Marinar;
     use Marinar\Marinar\Models\PackageBase as Package;
-    use Symfony\Component\Process\Exception\ProcessFailedException;
-    use Symfony\Component\Process\Process;
 
     /**
      * php artisan db:seed --class="\\Marinar\\Marinar\\Database\\Seeders\\MarinarInstallSeeder"

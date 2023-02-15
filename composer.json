@@ -13,13 +13,10 @@
         "marinar/orderable": "*",
         "marinar/addressable": "*",
         "laravel/fortify": "*",
-        "league/flysystem-sftp-v3": "*",
         "spatie/laravel-permission": "*",
-        "doctrine/dbal": "^3.3",
         "barryvdh/laravel-elfinder": "^0.5.1",
         "intervention/image": "^2.7",
         "box/spout": "^3.3",
-        "php-excel-reader/spreadsheet-reader": "dev-master",
         "rap2hpoutre/laravel-log-viewer": "^2.2"
     },
     "autoload": {

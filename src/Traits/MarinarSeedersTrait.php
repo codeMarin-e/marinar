@@ -4,8 +4,7 @@ namespace Marinar\Marinar\Traits;
 
 use Illuminate\Support\Str;
 use Marinar\Marinar\Models\PackageBase as Package;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
+use Illuminate\Support\Facades\Process;
 
 trait MarinarSeedersTrait {
 
@@ -23,18 +22,15 @@ trait MarinarSeedersTrait {
     }
 
     private function execCommand($command, $show = false, $output = false, $workingDir = null) {
-        $process = Process::fromShellCommandline( $command );
-        $process->setWorkingDirectory( $workingDir?? base_path() );
-        // $process->setTty(true);
-        $process->setTimeout(null);
-        $process->run();
+        $process = Process::forever()->path($workingDir?? base_path())->run( $command );
+        // $process->tty();
         // executes after the command finishes
-        if (!$process->isSuccessful()) {
+        if ($process->failed()) {
             return false;
-            throw new ProcessFailedException($process);
+            throw new \Illuminate\Process\Exceptions\ProcessFailedException($process);
         }
-        if($show) echo $process->getOutput();
-        if($output) return $process->getOutput();
+        if($show) echo $process->output();
+        if($output) return $process->output();
         return true;
     }
 

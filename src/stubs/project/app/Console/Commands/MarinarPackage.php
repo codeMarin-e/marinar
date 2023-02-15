@@ -4,9 +4,7 @@
 
     use App\Models\Package;
     use Illuminate\Console\Command;
-
-    use Symfony\Component\Process\Exception\ProcessFailedException;
-    use Symfony\Component\Process\Process;
+    use Illuminate\Support\Facades\Process;
 
     class MarinarPackage extends Command
     {
@@ -83,17 +81,14 @@
                 foreach ($commands as $command) {
                     $command = Package::replaceEnvCommand($command);
                     $this->components->info($command);
-                    $process = Process::fromShellCommandline($command.' --force');
-//                $process = new Process(explode(' ', $addCommand));
-                    $process->setWorkingDirectory(app('path.base'));
-                    $process->setTimeout(180);
-                    $process->run();
+
+                    $process = Process::timeout(180)->path(app('path.base'))->run( $command.' --force' );
 
                     // executes after the command finishes
-                    if (!$process->isSuccessful()) {
-                        throw new ProcessFailedException($process);
+                    if ($process->failed()) {
+                        throw new \Illuminate\Process\Exceptions\ProcessFailedException($process);
                     }
-                    echo $process->getOutput();
+                    echo $process->output();
                 }
             }
             if($this->argument('package') == 'all') {
