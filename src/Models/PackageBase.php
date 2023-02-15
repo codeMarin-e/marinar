@@ -4,7 +4,7 @@
     use Composer\Script\Event;
     use Composer\Installer\PackageEvent;
     use Composer\Installer\InstallerEvent;
-    use Illuminate\Support\Facades\Process;
+    use Illuminate\Process\PendingProcess as Process;
 
     class PackageBase {
 
