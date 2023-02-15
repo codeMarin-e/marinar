@@ -5,7 +5,8 @@
     use Composer\Script\Event;
     use Composer\Installer\PackageEvent;
     use Composer\Installer\InstallerEvent;
-    use Illuminate\Process\PendingProcess as Process;
+    use Symfony\Component\Process\Exception\ProcessFailedException;
+    use Symfony\Component\Process\Process;
 
     class Package {
         public static function mainFolder() {
@@ -78,13 +79,16 @@
         public static function postAutoloadDump() {
             $command = static::replaceEnvCommand("php artisan marinar:package");
             echo "$command \n";
+            $process = new Process( explode(' ', $command) );
+            $process->setWorkingDirectory( static::mainFolder() );
+            $process->setTimeout(380);
+            $process->run();
 
-            $process = Process::timeout(380)->path(static::mainFolder())->run( $command );
             // executes after the command finishes
-            if ($process->failed()) {
-                throw new \Illuminate\Process\Exceptions\ProcessFailedException($process);
+            if (!$process->isSuccessful()) {
+                throw new ProcessFailedException($process);
             }
-            echo print_r( $process->output(), true )." \n";
+            echo print_r( $process->getOutput(), true )." \n";
         }
 
 
@@ -148,13 +152,15 @@
                 foreach ($removePackages as $packageName => $requires) {
                     $forProcessCmd = static::replaceEnvCommand("php artisan marinar:package {$packageName} -r");
                     echo "{$forProcessCmd} \n";
-
-                    $process = Process::timemout(380)->path(static::mainFolder())->run( $forProcessCmd );
+                    $process = new Process(explode(' ', $forProcessCmd));
+                    $process->setWorkingDirectory(static::mainFolder());
+                    $process->setTimeout(380);
+                    $process->run();
                     // executes after the command finishes
-                    if ($process->failed()) {
-                        throw new \Illuminate\Process\Exceptions\ProcessFailedException($process);
+                    if (!$process->isSuccessful()) {
+                        throw new ProcessFailedException($process);
                     }
-                    echo print_r($process->output(), true) . " \n";
+                    echo print_r($process->getOutput(), true) . " \n";
                 }
             }
         }
