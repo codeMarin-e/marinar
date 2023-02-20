@@ -352,7 +352,7 @@ trait MarinarSeedersTrait {
 //            unlink($appPath);
 
             //NEED TO CHECK WHICH IS MORE EFFICIENT - DIRECTLY HERE OR UNLINK-COPY
-                @file_put_contents($appPath, $pathContent);
+            @file_put_contents($appPath, $pathContent);
         }
     }
 
@@ -569,7 +569,7 @@ trait MarinarSeedersTrait {
                     $add[$index] = Str::startsWith($addLine, $addSpaces)?
                         Str::replaceFirst($addSpaces, $spaces, $addLine) : $addLine;
                 }
-                $add = implode("\n", $add);
+                $add = implode("", $add);
                 $return .= ($putComments? $spaces.$startComment.$add.$spaces.$endComment : $add);
             }
             $return .= $line;
@@ -682,7 +682,7 @@ trait MarinarSeedersTrait {
                     unset($return[$appPath][$hook]); continue;
                 }
                 if(Str::startsWith($addonContent, dirname( base_path() ))) { //content is in hook file
-                    $return[$appPath][$hook] = str_replace(["<?php\n", "<?php \n"], '', file_get_contents($addonContent));
+                    $return[$appPath][$hook] = str_replace(["<?php\n", "<?php \n", "<?php\r\n", "<?php \r\n"], '', file_get_contents($addonContent));
                 }
             }
         }
@@ -721,7 +721,7 @@ trait MarinarSeedersTrait {
             foreach($hookAddons as $hook => $addonContent) {
                 if(Str::startsWith($addonContent, dirname( base_path() ))) { //content is in hook file
                     $addonContent = str_replace(static::$packageDir.DIRECTORY_SEPARATOR.'hooks', $oldStubsHookPath, $addonContent);
-                    $oldMap[$filePath][$hook] = str_replace(["<?php\n", "<?php \n"], '', file_get_contents($addonContent));
+                    $oldMap[$filePath][$hook] = str_replace(["<?php\n", "<?php \n", "<?php\r\n", "<?php \r\n"], '', file_get_contents($addonContent));
                 }
             }
         }
@@ -752,7 +752,7 @@ trait MarinarSeedersTrait {
             preg_match_all("/([ \t])*(".$startAddon.")([\s\S]*?)(".$endAddon.")/", $fileContent, $foundAddons);
             if(isset($foundAddons[0]) && !empty($foundAddons[0])) { //found @ADDONS
                 foreach($hookAddons as $hook => $addonContent) {
-                    $pureAddonContent = str_replace([" ", "\n", "\t"], '', $startComment.$addonContent.$endComment);
+                    $pureAddonContent = str_replace([" ", "\n", "\t", "\r"], '', $startComment.$addonContent.$endComment);
                     if(in_array($pureAddonContent, $alreadyReplacedPureContents)) { //for hooks with same content
                         //unset from static::$addons to not inject again
                         $buff = static::$addons;
@@ -761,13 +761,13 @@ trait MarinarSeedersTrait {
                         continue;
                     }
                     foreach($foundAddons[0] as $index => $injectedAddon) {
-                        if($pureAddonContent !== str_replace([" ", "\n", "\t"], '', $injectedAddon)) continue; //not same
+                        if($pureAddonContent !== str_replace([" ", "\n", "\t", "\r"], '', $injectedAddon)) continue; //not same
                         if(in_array($pureAddonContent, $alreadyReplacedPureContents)) continue; //for hooks with same content
                         $alreadyReplacedPureContents[] = $pureAddonContent;
                         //found match
                         $newContent = '';
                         if(isset(static::$addons[$filePath]) && isset(static::$addons[$filePath][$hook])) {
-                            if($pureAddonContent === str_replace([" ", "\n", "\t"], '', $startComment.static::$addons[$filePath][$hook].$endComment)) {//the new is same as old
+                            if($pureAddonContent === str_replace([" ", "\n", "\t", "\r"], '', $startComment.static::$addons[$filePath][$hook].$endComment)) {//the new is same as old
                                 unset($foundAddons[0][$index]);//make loops smaller
                                 //unset from static::$addons to not inject again
                                 $buff = static::$addons;
@@ -889,7 +889,7 @@ trait MarinarSeedersTrait {
                     unset($return[$appPath][$hook]); continue;
                 }
                 if(Str::startsWith($removeContent, dirname( base_path() ))) { //content is in hook file
-                    $return[$appPath][$hook] = str_replace(["<?php\n", "<?php \n"], '', file_get_contents($removeContent));
+                    $return[$appPath][$hook] = str_replace(["<?php\n", "<?php \n", "<?php\r\n", "<?php \r\n"], '', file_get_contents($removeContent));
                 }
             }
         }
@@ -907,38 +907,40 @@ trait MarinarSeedersTrait {
         }
         fclose($fp);
         foreach($searches as $index => $searchLines) {
+            $searchLines = is_string($searchLines)? explode("\n", $searchLines) : $searchLines;
             if(!is_array($searchLines) || empty($searchLines))continue;
-            $pureSearchLine = str_replace([" ", "\n", "\t"], '', $searchLines[0]);
+            $pureSearchLine = str_replace([" ", "\n", "\t", "\r"], '', $searchLines[0]);
             $newReturn = [];
             for($i=0; $i<count($return); $i++) {
-                $pureLine = str_replace([" ", "\n", "\t"], '', $return[$i]);
+                $pureLine = str_replace([" ", "\n", "\t", "\r"], '', $return[$i]);
                 if($pureLine !== $pureSearchLine) { $newReturn[] = $return[$i]; continue; } //not same with first line
                 for($j=1; $j<count($searchLines);$j++) {
                     if(!isset($return[$i+$j])) { $newReturn[] = $return[$i]; continue 2; } //there is no rows left
-                    $pureLine = str_replace([" ", "\n", "\t"], '', $return[$i+$j]);
-                    $pureSearchLine = str_replace([" ", "\n", "\t"], '', $searchLines[$j]);
-                    if($pureLine !== $pureSearchLine) { $newReturn[] = $return[$i]; continue 2; } //not same part
+                    $pureLine = str_replace([" ", "\n", "\t", "\r"], '', $return[$i+$j]);
+                    $pureSearchLine2 = str_replace([" ", "\n", "\t", "\r"], '', $searchLines[$j]);
+                    if($pureLine !== $pureSearchLine2) { $newReturn[] = $return[$i]; continue 2; } //not same part
                 }
                 //the part is same
+                $replaces[$index] = is_string($replaces[$index])? explode("\n", $replaces[$index]) : $replaces[$index];
                 $spaces = '';
-                for ($index = 0; $index < strlen($return[$i]); $index++) {
-                    if ($return[$i][$index] !== " " && $return[$i][$index] !== "\t") break;
-                    $spaces .= $return[$i][$index];
+                for ($y = 0; $y < strlen($return[$i]); $y++) {
+                    if ($return[$i][$y] !== " " && $return[$i][$y] !== "\t") break;
+                    $spaces .= $return[$i][$y];
                 }
                 $addonSpaces = '';
-                for ($index = 0; $index < strlen($replaces[$index][0]); $index++) {
-                    if ($replaces[$index][0][$index] !== " " && $replaces[$index][0][$index] !== "\t") break;
-                    $addonSpaces .= $replaces[$index][0][$index];
+                for ($y = 0; $y < strlen($replaces[$index][0]); $y++) {
+                    if ($replaces[$index][0][$y] !== " " && $replaces[$index][0][$y] !== "\t") break;
+                    $addonSpaces .= $replaces[$index][0][$y];
                 }
                 foreach($replaces[$index] as $replaceLine) {
-                    $newReturn[] = Str::startsWith($replaceLine, $addonSpaces)?
-                        Str::replaceFirst($addonSpaces, $spaces, $replaceLine) : $replaceLine;
+                    $newReturn[] = (Str::startsWith($replaceLine, $addonSpaces)?
+                            Str::replaceFirst($addonSpaces, $spaces, $replaceLine) : $spaces.$replaceLine)."\n";
                 }
-                $i += count($searchLines); //go to line after the part
+                $i += count($searchLines)-1; //go to line after the part
             }
             $return = $newReturn;
         }
-        return implode("\n", $return);
+        return implode("", $return);
     }
 
     private static function addonRemoveForPath($filePath) {
@@ -969,6 +971,18 @@ trait MarinarSeedersTrait {
         }
     }
 
+    private function addonRemoveUninstall() {
+        $hooksPath = static::$packageDir.DIRECTORY_SEPARATOR.'hooks';
+        if(!realpath($hooksPath)) return;
+        static::addonsRemoveMap();
+        foreach(static::$remove_addons as $filePath => $hookAddons) {
+            if(!realpath($filePath)) return false;
+            if(!file_put_contents($filePath, static::replaceInContent(
+                $filePath, array_keys($hookAddons), array_values($hookAddons)
+            ))) return false;
+        }
+    }
+
     private function autoInstall() {
         static::configure();
         $this->getRefComponents();
@@ -992,6 +1006,7 @@ trait MarinarSeedersTrait {
         if((int)config(static::$packageName.'.delete_behavior', false) === 2) return; //keep everything
         if(method_exists($this, 'clearMe')) $this->clearMe();
         $this->dbMigrateRollback();
+        $this->addonRemoveUninstall();
         $this->updateAddonInjects(clear: true);
         $this->clearFiles();
     }
