@@ -35,6 +35,8 @@ return [
         dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'public_html'.DIRECTORY_SEPARATOR.'admin'.DIRECTORY_SEPARATOR.'images',
         dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'public_html'.DIRECTORY_SEPARATOR.'admin'.DIRECTORY_SEPARATOR.'vendor',
         dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR.'public_html'.DIRECTORY_SEPARATOR.'packages',
+
+        // @HOOK_MARINAR_EXCLUDE_STUBS
     ],
 
     'max_file_size' => env('MAX_FILE_SIZE', '1024'), //IN MB
