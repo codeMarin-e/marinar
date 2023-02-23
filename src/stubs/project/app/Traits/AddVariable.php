@@ -11,14 +11,13 @@
 
         public static function bootAddVariable() {
             if (method_exists(static::class, 'bootSoftDeletes') || static::hasMacro('bootSoftDeletes')) {
-                static::registerModelEvent('forceDeleted', static::class . '@onDeleting_addVariables');
+                static::registerModelEvent('forceDeleting', static::class . '@onDeleting_addVariables');
             } else {
                 static::deleting(static::class . '@onDeleting_addVariables');
             }
         }
 
-        public function addvariable()
-        {
+        public function addvariable() {
             return $this->morphMany(AddVar::class, AddVar::$relation_name);
         }
 
@@ -33,8 +32,7 @@
             $this->addvariables_cache = null; //clear the memory cache
         }
 
-        public function aVar($name, $site = null, $language = null, $useOtherLanguages = true)
-        {
+        public function aVar($name, $site = null, $language = null, $useOtherLanguages = true) {
             if(is_null($this->addvariables_cache)) {
                 $this->aVarCache();
             }
@@ -62,14 +60,12 @@
             return '';
         }
 
-        public function setAVar(String $name, $value, $site = null, $language = null)
-        {
+        public function setAVar(String $name, $value, $site = null, $language = null) {
             if ($name == '') return;
             $this->setAVars([ $name => $value]);
         }
 
-        public function setAVars($addVars = [], $site = null, $language = null)
-        {
+        public function setAVars($addVars = [], $site = null, $language = null) {
             if (!is_array($addVars) || empty($addVars)) {
                 return;
             }
@@ -92,8 +88,7 @@
             ], ['var_value']);
         }
 
-        public function onDeleting_addVariables($model)
-        {
+        public function onDeleting_addVariables($model) {
             $model->clearAVarCache();
             $model->addvariable()->delete();
         }

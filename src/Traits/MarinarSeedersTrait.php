@@ -551,7 +551,7 @@ trait MarinarSeedersTrait {
 //                } else { //SEARCH FOR THE HOOK
 //                    if(strpos($line, $search) === false) continue;
 //                }
-                if(strpos($line, $search) === false) continue;
+                if(str_replace([' ', "\t", "\n"], '',$line) !== str_replace([' ', "\t", "\n"], '', $search)) continue;
                 $add = isset($replaces[$index])? $replaces[$index] : $replaces[0];
                 $add = explode("\n", $add);
 
@@ -569,7 +569,7 @@ trait MarinarSeedersTrait {
                     $add[$index] = Str::startsWith($addLine, $addSpaces)?
                         Str::replaceFirst($addSpaces, $spaces, $addLine) : $addLine;
                 }
-                $add = implode("", $add);
+                $add = implode("\n", $add);
                 $return .= ($putComments? $spaces.$startComment.$add.$spaces.$endComment : $add);
             }
             $return .= $line;

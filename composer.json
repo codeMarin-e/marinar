@@ -29,11 +29,6 @@
             "module": false,
             "plugin": false,
             "addon_to": false
-        },
-        "laravel": {
-            "aliases": {
-                "Marinar": "Marinar\\Marinar\\Marinar"
-            }
         }
     }
 }
