@@ -552,7 +552,7 @@ trait MarinarSeedersTrait {
 //                    if(strpos($line, $search) === false) continue;
 //                }
                 if(str_replace([' ', "\t", "\n"], '',$line) !== str_replace([' ', "\t", "\n"], '', $search)) continue;
-                $add = isset($replaces[$index])? $replaces[$index] : $replaces[0];
+                $add = trim(isset($replaces[$index])? $replaces[$index] : $replaces[0]);
                 $add = explode("\n", $add);
 
                 $spaces = '';
@@ -567,9 +567,9 @@ trait MarinarSeedersTrait {
                 }
                 foreach($add as $index => $addLine) {
                     $add[$index] = Str::startsWith($addLine, $addSpaces)?
-                        Str::replaceFirst($addSpaces, $spaces, $addLine) : $addLine;
+                        Str::replaceFirst($addSpaces, $spaces, $addLine) : $spaces.$addLine;
                 }
-                $add = implode("\n", $add);
+                $add = implode("\n", $add)."\n";
                 $return .= ($putComments? $spaces.$startComment.$add.$spaces.$endComment : $add);
             }
             $return .= $line;
@@ -782,17 +782,17 @@ trait MarinarSeedersTrait {
                                 $spaces .= $injectedAddon[$spaceIndex];
                             }
                             $addonSpaces = '';
-                            for ($spaceIndex = 0; $spaceIndex < strlen($injectedAddon); $spaceIndex++) {
-                                if ($injectedAddon[$spaceIndex] !== " " && $injectedAddon[$spaceIndex] !== "\t") break;
-                                $addonSpaces .= $injectedAddon[$spaceIndex];
+                            for ($spaceIndex = 0; $spaceIndex < strlen(static::$addons[$filePath][$hook]); $spaceIndex++) {
+                                if (static::$addons[$filePath][$hook][$spaceIndex] !== " " && static::$addons[$filePath][$hook][$spaceIndex] !== "\t") break;
+                                $addonSpaces .= static::$addons[$filePath][$hook][$spaceIndex];
                             }
-                            $newContent = explode("\n", static::$addons[$filePath][$hook]);
+                            $newContent = explode("\n", trim(static::$addons[$filePath][$hook]));
                             foreach($newContent as $rowIndex => $newContentRow) {
                                 $newContent[$rowIndex] = Str::startsWith($newContent[$rowIndex], $addonSpaces)?
                                     Str::replaceFirst($addonSpaces, $spaces, $newContent[$rowIndex]) :
-                                    $newContent[$rowIndex];
+                                    $spaces.$newContent[$rowIndex];
                             }
-                            $newContent = implode("\n", $newContent);
+                            $newContent = implode("\n", $newContent)."\n";
                             // end put same spaces and tabs
 
                             $newContent = $spaces.$startComment."\n".$newContent.$spaces.$endComment."\n";
@@ -907,13 +907,14 @@ trait MarinarSeedersTrait {
         }
         fclose($fp);
         foreach($searches as $index => $searchLines) {
-            $searchLines = is_string($searchLines)? explode("\n", $searchLines) : $searchLines;
+            $searchLines = is_string($searchLines)? explode("\n", trim($searchLines)) : $searchLines;
             if(!is_array($searchLines) || empty($searchLines))continue;
             $pureSearchLine = str_replace([" ", "\n", "\t", "\r"], '', $searchLines[0]);
             $newReturn = [];
             for($i=0; $i<count($return); $i++) {
                 $pureLine = str_replace([" ", "\n", "\t", "\r"], '', $return[$i]);
                 if($pureLine !== $pureSearchLine) { $newReturn[] = $return[$i]; continue; } //not same with first line
+
                 for($j=1; $j<count($searchLines);$j++) {
                     if(!isset($return[$i+$j])) { $newReturn[] = $return[$i]; continue 2; } //there is no rows left
                     $pureLine = str_replace([" ", "\n", "\t", "\r"], '', $return[$i+$j]);
@@ -921,7 +922,7 @@ trait MarinarSeedersTrait {
                     if($pureLine !== $pureSearchLine2) { $newReturn[] = $return[$i]; continue 2; } //not same part
                 }
                 //the part is same
-                $replaces[$index] = is_string($replaces[$index])? explode("\n", $replaces[$index]) : $replaces[$index];
+                $replaces[$index] = is_string($replaces[$index])? explode("\n", trim($replaces[$index])) : $replaces[$index];
                 $spaces = '';
                 for ($y = 0; $y < strlen($return[$i]); $y++) {
                     if ($return[$i][$y] !== " " && $return[$i][$y] !== "\t") break;
