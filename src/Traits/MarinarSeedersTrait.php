@@ -10,6 +10,7 @@ trait MarinarSeedersTrait {
 
     public static $addons = null; //for the stubs and addons map
     public static $remove_addons = null; //for removing contents addons map
+    public static $addon_on_addons = []; //for addon on addon files
 
     public $refComponents = null; //for the interface
 
@@ -523,56 +524,79 @@ trait MarinarSeedersTrait {
         });
     }
 
-    private static function putBeforeInContent($filePath, $searches, $replaces, $putComments = true) {
+    public static function putInHook($line, $searches, $replaces, $startComment, $endComment) {
+        $return = [];
+        foreach($searches as $index => $search) {
+            if(str_replace([' ', "\t", "\n"], '',$line) !== str_replace([' ', "\t", "\n"], '', $search)) continue;
+            $add = trim(isset($replaces[$index])? $replaces[$index] : $replaces[0], "\n\r");
+            $add = explode("\n", $add);
+
+            $spaces = '';
+            for ($index = 0; $index < strlen($line); $index++) {
+                if ($line[$index] !== " " && $line[$index] !== "\t") break;
+                $spaces .= $line[$index];
+            }
+            $addSpaces = '';
+            for ($index = 0; $index < strlen($add[0]); $index++) {
+                if ($add[0][$index] !== " " && $add[0][$index] !== "\t") break;
+                $addSpaces .= $add[0][$index];
+            }
+            foreach($add as $index => $addLine) {
+                $add[$index] = Str::startsWith($addLine, $addSpaces)?
+                    Str::replaceFirst($addSpaces, $spaces, $addLine) : $spaces.$addLine;
+            }
+            if($startComment) {
+                $return[] = $spaces.$startComment;
+            }
+            $return = array_merge($return, $add);
+
+            if($endComment) {
+                $return[] = $spaces.$endComment;
+            }
+        }
+        return $return;
+    }
+
+    public static function putBeforeInText($text, $searches, $replaces, $putCommentFilePath = false) {
+        $startComment = $endComment = '';
+        if($putCommentFilePath) {
+            foreach (config('marinar.ext_comments') as $endsWith => $commentType) {
+                if (!Str::endsWith($putCommentFilePath, $endsWith)) continue;
+                $startComment = str_replace('__COMMENT__', '@ADDON', $commentType);
+                $endComment = str_replace('__COMMENT__', '@END_ADDON', $commentType);
+                break;
+            }
+        }
+
+        $text = explode("\n" , trim($text, "\n\r"));
+        $searches = (array)$searches;
+        $replaces = (array)$replaces;
+        $return = [];
+        foreach($text as $line) {
+            $lineHooked = static::putInHook($line, $searches, $replaces, $startComment, $endComment);
+            if(!is_empty($lineHooked)) {
+                $return = array_merge($return, $lineHooked);
+            }
+            $return[] = $line;
+        }
+        return implode("\n", $return)."\n";
+    }
+
+    public static function putBeforeInContent($filePath, $searches, $replaces, $putComments = true) {
         if(!($fp = fopen($filePath, "r"))) return false;
         $startComment = $endComment = '';
         foreach(config('marinar.ext_comments') as $endsWith => $commentType) {
             if(!Str::endsWith($filePath, $endsWith)) continue;
-            $startComment = str_replace('__COMMENT__', '@ADDON', $commentType)."\n";
-            $endComment = str_replace('__COMMENT__', '@END_ADDON', $commentType)."\n";
+            $startComment = str_replace('__COMMENT__', '@ADDON', $commentType);
+            $endComment = str_replace('__COMMENT__', '@END_ADDON', $commentType);
             break;
         }
         $searches = (array)$searches;
         $replaces = (array)$replaces;
         $return = '';
-
-        $lineCounter = 0;
         while (($line = fgets($fp)) !== false) {
-            $lineCounter++;
-            foreach($searches as $index => $search) {
-//                //SEARCH FOR THE LINE
-//                if(property_exists(static::class, 'alreadyInjectedInLine') && isset(static::$alreadyInjectedInLine[$filePath]) &&
-//                    (isset(static::$alreadyInjectedInLine[$filePath][$search]) || isset(static::$alreadyInjectedInLine[$filePath]['default']))
-//                ) {
-//                    $lineIn = isset(static::$alreadyInjectedInLine[$filePath][$search])?
-//                        static::$alreadyInjectedInLine[$filePath][$search] :
-//                        static::$alreadyInjectedInLine[$filePath]['default'];
-//                    if($lineIn != $lineCounter) continue;
-//                } else { //SEARCH FOR THE HOOK
-//                    if(strpos($line, $search) === false) continue;
-//                }
-                if(str_replace([' ', "\t", "\n"], '',$line) !== str_replace([' ', "\t", "\n"], '', $search)) continue;
-                $add = trim(isset($replaces[$index])? $replaces[$index] : $replaces[0]);
-                $add = explode("\n", $add);
-
-                $spaces = '';
-                for ($index = 0; $index < strlen($line); $index++) {
-                    if ($line[$index] !== " " && $line[$index] !== "\t") break;
-                    $spaces .= $line[$index];
-                }
-                $addSpaces = '';
-                for ($index = 0; $index < strlen($add[0]); $index++) {
-                    if ($add[0][$index] !== " " && $add[0][$index] !== "\t") break;
-                    $addSpaces .= $add[0][$index];
-                }
-                foreach($add as $index => $addLine) {
-                    $add[$index] = Str::startsWith($addLine, $addSpaces)?
-                        Str::replaceFirst($addSpaces, $spaces, $addLine) : $spaces.$addLine;
-                }
-                $add = implode("\n", $add)."\n";
-                $return .= ($putComments? $spaces.$startComment.$add.$spaces.$endComment : $add);
-            }
-            $return .= $line;
+            $lineHooked = static::putInHook($line, $searches, $replaces, $startComment, $endComment);
+            $return .= is_empty($lineHooked)? $line : implode("\n", $lineHooked)."\n".$line;
         }
         fclose($fp);
         return $return;
@@ -678,8 +702,10 @@ trait MarinarSeedersTrait {
                 unset($return[$appPath]); continue;
             }
             foreach($hookAddons as $hook => $addonContent) {
-                if($useExcludes && isset($excludeInjects[$appPath][$hook])) {
-                    unset($return[$appPath][$hook]); continue;
+                if($useExcludes && isset($excludeInjects[$appPath]) && in_array($hook, $excludeInjects[$appPath])) {
+                    unset($return[$appPath][$hook]);
+                    if(empty($return[$appPath])) unset($return[$appPath]);
+                    continue;
                 }
                 if(Str::startsWith($addonContent, dirname( base_path() ))) { //content is in hook file
                     $return[$appPath][$hook] = str_replace(["<?php\n", "<?php \n", "<?php\r\n", "<?php \r\n"], '', file_get_contents($addonContent));
@@ -710,7 +736,9 @@ trait MarinarSeedersTrait {
                     continue;
                 }
                 foreach ($excludedHooks as $hook) {
-                    if (isset($oldMap[$filePath][$hook])) unset($oldMap[$filePath][$hook]);
+                    if (!isset($oldMap[$filePath][$hook])) continue;
+                    unset($oldMap[$filePath][$hook]);
+                    if(empty($oldMap[$filePath])) unset($oldMap[$filePath]);
                 }
             }
         }
@@ -725,6 +753,7 @@ trait MarinarSeedersTrait {
                 }
             }
         }
+
         foreach($oldMap as $filePath => $hookAddons) {
             $startComment = $endComment = false;
             foreach(config('marinar.ext_comments') as $endsWith => $commentType) {
@@ -786,7 +815,7 @@ trait MarinarSeedersTrait {
                                 if (static::$addons[$filePath][$hook][$spaceIndex] !== " " && static::$addons[$filePath][$hook][$spaceIndex] !== "\t") break;
                                 $addonSpaces .= static::$addons[$filePath][$hook][$spaceIndex];
                             }
-                            $newContent = explode("\n", trim(static::$addons[$filePath][$hook]));
+                            $newContent = explode("\n", trim(static::$addons[$filePath][$hook], "\n\r"));
                             foreach($newContent as $rowIndex => $newContentRow) {
                                 $newContent[$rowIndex] = Str::startsWith($newContent[$rowIndex], $addonSpaces)?
                                     Str::replaceFirst($addonSpaces, $spaces, $newContent[$rowIndex]) :
@@ -804,6 +833,7 @@ trait MarinarSeedersTrait {
                         }
                         $contentChanged = true;
                         $fileContent = str_replace($injectedAddon."\n", $newContent, $fileContent);
+
                         unset($foundAddons[0][$index]);//make loops smaller
                     }
                 }
@@ -907,7 +937,7 @@ trait MarinarSeedersTrait {
         }
         fclose($fp);
         foreach($searches as $index => $searchLines) {
-            $searchLines = is_string($searchLines)? explode("\n", trim($searchLines)) : $searchLines;
+            $searchLines = is_string($searchLines)? explode("\n", trim($searchLines, "\n\r")) : $searchLines;
             if(!is_array($searchLines) || empty($searchLines))continue;
             $pureSearchLine = str_replace([" ", "\n", "\t", "\r"], '', $searchLines[0]);
             $newReturn = [];
@@ -922,7 +952,7 @@ trait MarinarSeedersTrait {
                     if($pureLine !== $pureSearchLine2) { $newReturn[] = $return[$i]; continue 2; } //not same part
                 }
                 //the part is same
-                $replaces[$index] = is_string($replaces[$index])? explode("\n", trim($replaces[$index])) : $replaces[$index];
+                $replaces[$index] = is_string($replaces[$index])? explode("\n", trim($replaces[$index], "\n\r")) : $replaces[$index];
                 $spaces = '';
                 for ($y = 0; $y < strlen($return[$i]); $y++) {
                     if ($return[$i][$y] !== " " && $return[$i][$y] !== "\t") break;
@@ -984,6 +1014,79 @@ trait MarinarSeedersTrait {
         }
     }
 
+    private function triggerInstallAddons() {
+        if(!realpath(base_path().DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.static::$packageName.'.php')) return;
+        foreach (config(static::$packageName . '.addons') as $addonMainClass) {
+            if(!method_exists($addonMainClass, 'triggeredInstalled')) continue;
+            $addonMainClass::triggeredInstalled(static::class);
+        }
+    }
+
+    /**
+     * FOR PUTTING ADDON ON ALREADY ADDON - CHECK BEFORE ADDON FOR CONTENT - FOR hooks/map.php MAINLY
+     */
+    public static function addonOnAddon($otherMap, $filePath, $otherHook, $addonHook, $addonOnAddonContent, $mapDir, $oldHookFileName) {
+        if(!\Illuminate\Support\Str::startsWith($mapDir, static::$packageDir)) {
+            return $mapDir.DIRECTORY_SEPARATOR.$oldHookFileName;
+        }
+        $return = '';
+        if(!realpath($otherMap)) return false;
+        $otherMap = include $otherMap;
+        if(!isset($otherMap[$filePath]) || !isset($otherMap[$filePath][$otherHook])) return false;
+        $addonContent = $otherMap[$filePath][$otherHook];
+        if (Str::startsWith($addonOnAddonContent, dirname(base_path()))) { //content is in hook file
+            $addonOnAddonContent = str_replace(["<?php\n", "<?php \n", "<?php\r\n", "<?php \r\n"], '', file_get_contents($addonOnAddonContent));
+        }
+        $return = Str::startsWith($addonContent, dirname( base_path() ))? //content is in hook file
+            static::putBeforeInContent($addonContent, [$addonHook],[$addonOnAddonContent], false) :
+            static::putBeforeInText($addonContent, [$addonHook], [$addonOnAddonContent], $filePath);
+
+        $oldCategoryHookTestPath = implode( DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', $oldHookFileName  ]);
+        file_put_contents($oldCategoryHookTestPath, $return);
+        static::$addon_on_addons[] = $oldHookFileName;
+        return $oldCategoryHookTestPath;
+    }
+
+    /**
+     * FOR PUTTING ADDON ON ALREADY ADDON - SHOULD REMOVE THE FIRST ADDON CONTENT - FOR hooks/remove_map.php MAINLY
+     */
+    public static function removeAddonForAddon($otherMap, $filePath, $otherHook) {
+        $return = '';
+        if(!realpath($otherMap)) return false;
+        $hooksMap = include $otherMap;
+        if(!isset($hooksMap[$filePath]) || isset($hooksMap[$filePath][$otherHook])) return false;
+        $addonContent = $hooksMap[$filePath][$otherHook];
+
+        $return = \Illuminate\Support\Str::startsWith($addonContent, base_path())? //content is in hook file
+            file_get_contents($addonContent) : $addonContent;
+        $return = str_replace(["<?php\n", "<?php \n", "<?php\r\n", "<?php \r\n"], '', $return);
+        $return = trim($return," \n\r")."\n";
+
+        $startComment = $endComment = '';
+        foreach(config('marinar.ext_comments') as $endsWith => $commentType) {
+            if(!Str::endsWith($filePath, $endsWith)) continue;
+            $startComment = str_replace('__COMMENT__', '@ADDON', $commentType);
+            $endComment = str_replace('__COMMENT__', '@END_ADDON', $commentType);
+            break;
+        }
+        if($startComment) {
+            $return = $startComment."\n".$return;
+        }
+        if($endComment) {
+            $return = $return.$endComment."\n";
+        }
+        return $return;
+    }
+
+    private function moveAddonOnAddonFiles() {
+        foreach(static::$addon_on_addons as $fileName) {
+            rename(
+                implode( DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', $fileName ]),
+                implode( DIRECTORY_SEPARATOR, [ base_path(), 'storage', 'marinar_stubs', static::$packageName, 'hooks', $fileName ])
+            );
+        }
+    }
+
     private function autoInstall() {
         static::configure();
         $this->getRefComponents();
@@ -993,10 +1096,12 @@ trait MarinarSeedersTrait {
             $this->injectAddons();
             $this->stubFiles();
             $this->copyToMarinarHooks();
+            $this->moveAddonOnAddonFiles();
             $this->dbMigrate();
             $this->seedMe();
             $this->prepareComposerJSON();
             if(method_exists($this, 'installMe')) $this->installMe();
+            $this->triggerInstallAddons();
         }
         $this->giveGitPermissions();
     }
