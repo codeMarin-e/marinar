@@ -124,7 +124,7 @@
                     $composerJSON['autoload']['files'] = array();
                 }
                 $file = "app/Fixes/elfinder/ElFinderController.php";
-                if(!in_array($operation, $composerJSON['autoload']['files'])) {
+                if(!in_array($file, $composerJSON['autoload']['files'])) {
                     $composerJSON['autoload']['files'][] = $file;
                 }
                 if(!isset($composerJSON['require'])) {
