@@ -1033,7 +1033,7 @@ trait MarinarSeedersTrait {
 
     private function triggerInstallAddons() {
         if(!realpath(base_path().DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.static::$packageName.'.php')) return;
-        foreach (config(static::$packageName . '.addons') as $addonMainClass) {
+        foreach (config(static::$packageName . '.addons', []) as $addonMainClass) {
             if(!method_exists($addonMainClass, 'triggeredInstalled')) continue;
             $addonMainClass::triggeredInstalled(static::class);
         }
