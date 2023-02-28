@@ -974,7 +974,7 @@ trait MarinarSeedersTrait {
         return implode("", $return);
     }
 
-    private static function addonRemoveForPath($filePath) {
+    public static function addonRemoveForPath($filePath) {
         static::addonsRemoveMap();
         if(!isset(static::$remove_addons[$filePath]))
             return false;
