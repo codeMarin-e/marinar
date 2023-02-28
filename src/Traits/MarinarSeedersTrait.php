@@ -141,14 +141,14 @@ trait MarinarSeedersTrait {
     private function updateStubFiles() {
         static::$addons = [];
         static::$remove_addons = [];
-        static::cleanStubsForUpdate(
+        $filesForUpdate = static::cleanStubsForUpdate(
             static::$packageDir.DIRECTORY_SEPARATOR.'stubs',
             static::$packageDir.DIRECTORY_SEPARATOR.'stubs',
             static::$packageName
         );
 //        $this->copyStubs(static::$packageDir.DIRECTORY_SEPARATOR.'stubs'); //trying only with file_put_contents in cleanStubsForUpdate
-        $this->callStubsAddonsRemove();
-        $this->injectStubsAddons();
+        $this->callStubsAddonsRemove($filesForUpdate);
+        $this->injectStubsAddons($filesForUpdate);
     }
 
     private function setVersion($packageVersion) {
@@ -202,6 +202,7 @@ trait MarinarSeedersTrait {
     }
 
     private static function cleanStubsForUpdate($path, $copyDir, $packageName) {
+        $return = [];
         $excludeStubs = config($packageName.'.exclude_stubs', []);
         $valuesStubs = config($packageName.'.values_stubs', []);
         foreach(new \DirectoryIterator($path) as $path) {
@@ -215,7 +216,7 @@ trait MarinarSeedersTrait {
             $createUpdateStub = false;
             if (in_array($appPath, $excludeStubs)) continue; //do not update
             if (is_dir($path)) {
-                static::cleanStubsForUpdate($path, $copyDir, $packageName);
+                $return = array_merge($return , static::cleanStubsForUpdate($path, $copyDir, $packageName));
                 if (is_dir($appPath) && (iterator_count(new \DirectoryIterator($appPath)) - 2) === 0) {
                     rmdir($appPath);
                 }
@@ -251,6 +252,23 @@ trait MarinarSeedersTrait {
                             $endAddon .= $endComment[$index];
                         }
 
+                        //FOR REMOVES
+                        foreach (config($packageName . '.addons') as $addonMainClass) {
+                            if (!method_exists($addonMainClass, 'injects')) continue;
+                            $injectAddonClass = $addonMainClass::injects();
+                            if (!method_exists($injectAddonClass, 'addonsRemoveMap')) continue;
+                            $injectAddonClass::configure();
+                            $injectAddonClass::addonsRemoveMap(useExcludes: false); //still need to replace if something is left
+                            if (!isset($injectAddonClass::$remove_addons[$appPath])) continue;
+                            $fileContent = static::replaceInContent($fileContent,
+                                array_keys($injectAddonClass::$remove_addons[$appPath]),
+                                array_values($injectAddonClass::$remove_addons[$appPath])
+                            );
+                            static::$remove_addons[$appPath] = static::$remove_addons[$appPath]?? [];
+                            static::$remove_addons[$appPath][$index] = $injectAddonClass; //just reusing to safe memory - cleaned in @updateStubFiles
+                        }
+                        //END FOR REMOVES
+
                         preg_match_all("/([ \t])*(" . $startAddon . ")([\s\S]*?)(" . $endAddon . ")/", $fileContent, $foundAddons);
                         if (isset($foundAddons[0]) && !empty($foundAddons[0])) { //found @ADDONS
                             $fileContent = str_replace($foundAddons[0], "", $fileContent);
@@ -284,22 +302,12 @@ trait MarinarSeedersTrait {
                             }
                         }
 
-                        //FOR REMOVES
-                        foreach (config($packageName . '.addons') as $addonMainClass) {
-                            if (!method_exists($addonMainClass, 'injects')) continue;
-                            $injectAddonClass = $addonMainClass::injects();
-                            if (!method_exists($injectAddonClass, 'addonsRemoveMap')) continue;
-                            $injectAddonClass::configure();
-                            $injectAddonClass::addonsRemoveMap(useExcludes: false); //still need to replace if something is left
-                            if (!isset($injectAddonClass::$remove_addons[$appPath])) continue;
-                            $fileContent = static::replaceInContent($appPath,
-                                array_keys($injectAddonClass::$remove_addons[$appPath]),
-                                array_values($injectAddonClass::$remove_addons[$appPath])
-                            );
-                            static::$remove_addons[$appPath] = static::$remove_addons[$appPath]?? [];
-                            static::$remove_addons[$appPath][$index] = $injectAddonClass; //just reusing to safe memory - cleaned in @updateStubFiles
+                        //FOR ADDON ON ADDON
+                        preg_match_all("/[ \t]*\{\{\-\-  @REMOVE[\s\S]*?\-\-\}\}/", $fileContent, $foundAddons);
+                        if (isset($foundAddons[0]) && !empty($foundAddons[0])) { //found ADDON_ON_ADDON
+                            $fileContent = str_replace($foundAddons[0], "", $fileContent);
                         }
-                        //END FOR REMOVES
+                        //END FOR ADDON ON ADDON
 
                     }
                     $fileContent = str_replace([' ', "\t", "\n"], '', $fileContent);
@@ -345,6 +353,7 @@ trait MarinarSeedersTrait {
                     umask($old);
                 }
                 file_put_contents($updateStubPath, $pathContent);
+                $return[] = $appPath;
                 echo "UPDATE STUB WAS CREATED: ".$appPath.PHP_EOL;
                 continue;
             }
@@ -355,10 +364,12 @@ trait MarinarSeedersTrait {
             //NEED TO CHECK WHICH IS MORE EFFICIENT - DIRECTLY HERE OR UNLINK-COPY
             @file_put_contents($appPath, $pathContent);
         }
+        return $return; //files for update
     }
 
-    private function injectStubsAddons() {
+    private function injectStubsAddons($filesForUpdate = []) {
         foreach(static::$addons as $appPath => $classHookData) {
+            if(in_array($appPath, $filesForUpdate)) continue;
             $this->refComponents->task("Inject addon - ".basename($appPath), function() use ($appPath, $classHookData){
                 foreach($classHookData as $classHookArr) {
                     $className = $classHookArr['class'];
@@ -371,8 +382,9 @@ trait MarinarSeedersTrait {
         }
     }
 
-    private function callStubsAddonsRemove() {
+    private function callStubsAddonsRemove($filesForUpdate = []) {
         foreach(static::$remove_addons as $appPath => $classData) {
+            if(in_array($appPath, $filesForUpdate)) continue;
             $this->refComponents->task("Addon remove - ".basename($appPath), function() use ($appPath, $classData){
                 foreach($classData as $className) {
                     if(!method_exists($className, 'addonRemoveForPath')) continue;
@@ -926,16 +938,21 @@ trait MarinarSeedersTrait {
         return (static::$remove_addons = $return);
     }
 
-    private static function replaceInContent($filePath, $searches, $replaces) {
-        if(!($fp = fopen($filePath, "r"))) return false;
+    private static function replaceInContent($content, $searches, $replaces) {
         $searches = (array)$searches;
         $replaces = (array)$replaces;
 
         $return = [];
-        while (($line = fgets($fp)) !== false) {
-            $return[] = $line;
+        if(Str::startsWith($content, dirname( base_path() ))) { //content is in hook file
+            if(!($fp = fopen($content, "r"))) return false;
+            while (($line = fgets($fp)) !== false) {
+                $return[] = $line;
+            }
+            fclose($fp);
+        } else {
+            $content = explode("\n", trim($content, "\n\r"));
+            foreach($content as $line) $return[] = $line."\n";
         }
-        fclose($fp);
         foreach($searches as $index => $searchLines) {
             $searchLines = is_string($searchLines)? explode("\n", trim($searchLines, "\n\r")) : $searchLines;
             if(!is_array($searchLines) || empty($searchLines))continue;
