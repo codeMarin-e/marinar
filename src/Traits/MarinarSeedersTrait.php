@@ -574,7 +574,7 @@ trait MarinarSeedersTrait {
         $return = [];
         foreach($text as $line) {
             $lineHooked = static::putInHook($line, $searches, $replaces, $startComment, $endComment);
-            if(!is_empty($lineHooked)) {
+            if(!empty($lineHooked)) {
                 $return = array_merge($return, $lineHooked);
             }
             $return[] = $line;
@@ -596,7 +596,7 @@ trait MarinarSeedersTrait {
         $return = '';
         while (($line = fgets($fp)) !== false) {
             $lineHooked = static::putInHook($line, $searches, $replaces, $startComment, $endComment);
-            $return .= is_empty($lineHooked)? $line : implode("\n", $lineHooked)."\n".$line;
+            $return .= empty($lineHooked)? $line : implode("\n", $lineHooked)."\n".$line;
         }
         fclose($fp);
         return $return;
