@@ -423,7 +423,7 @@ trait MarinarSeedersTrait {
                 continue;
             }
             if($deleteBehavior === true || !is_file($appPath)) {
-                unlink($appPath);
+                if(realpath($appPath)) unlink($appPath);
                 continue;
             }
             //stubs that return configurable array

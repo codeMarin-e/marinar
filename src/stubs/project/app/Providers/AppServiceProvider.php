@@ -53,6 +53,12 @@ class AppServiceProvider extends ServiceProvider
         Blade::directive('endpushonce', function ($expression) {
             return '<?php $__env->stopPush(); endif; ?>';
         });
+        Blade::directive('pushOnReady', function ($expression) {
+            return "<?php \$__env->startPush({$expression}); ?>";
+        });
+        Blade::directive('endpushOnReady', function ($expression) {
+            return '<?php $__env->marinar_stop_push(); ?>';
+        });
 
         Blade::directive('pushonceOnReady', function ($expression) {
             $var = '$__env->{"__pushonceOnReady_" . md5(__FILE__ . ":" . __LINE__)}';

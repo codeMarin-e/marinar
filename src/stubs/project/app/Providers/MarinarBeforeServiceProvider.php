@@ -44,11 +44,6 @@
          */
         public function register()
         {
-            App::singleton('Site', function(){
-//                return Site::where('domain', env('ALIAS_DOMAIN', \Illuminate\Support\Str::replaceFirst('www.', '', request()->getHost()) ) )->first();
-                return json_decode(json_encode(array('id' => 1, 'domain' => 'testing.test')));
-            });
-
             Request::macro('whereIAm', function() {
                 if(!is_null(\App\Providers\MarinarBeforeServiceProvider::$where_i_am))
                     return \App\Providers\MarinarBeforeServiceProvider::$where_i_am;

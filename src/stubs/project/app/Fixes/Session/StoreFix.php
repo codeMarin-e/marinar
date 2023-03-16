@@ -63,6 +63,8 @@
          */
         public function regenerateToken()
         {
+            event( 'session.regenerate.start');
             $this->put($this->tokenUsedName(), Str::random(40));
+            event( 'session.regenerate.end');
         }
     }
