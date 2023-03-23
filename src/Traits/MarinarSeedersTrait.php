@@ -861,7 +861,7 @@ trait MarinarSeedersTrait {
     }
 
     private function seedMe() {
-        $namespacePackageName = ucfirst(str_replace('marinar_', '', static::$packageName));
+        $namespacePackageName = Str::replaceFirst('marinar', '', Str::camel( static::$packageName));
         $seedersPath = implode(DIRECTORY_SEPARATOR, [
             static::$packageDir, 'stubs', 'project', 'database', 'seeders', 'Packages', $namespacePackageName
         ]);
